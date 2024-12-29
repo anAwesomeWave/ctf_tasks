@@ -1,0 +1,3 @@
+POSTGRES_USER=tim
+POSTGRES_PASSWORD=anawesomewave
+POSTGRES_DB=ctf
