@@ -3,3 +3,5 @@ storage:
   path: localhost:54321
 httpServer:
   address: "0.0.0.0:8081"
+images:
+  basePath: "./static/users/upload/"

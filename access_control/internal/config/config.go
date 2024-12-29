@@ -11,6 +11,7 @@ type AppConfig struct {
 	Env           string     `yaml:"env" env:"ENV" env-default:"local"`
 	StorageCfg    Storage    `yaml:"storage" env-required:"true"`
 	HTTPServerCfg HttpServer `yaml:"httpServer"`
+	ImagesCfg     Images     `yaml:"images"`
 }
 
 type HttpServer struct {
@@ -24,6 +25,9 @@ type Storage struct {
 	User     string `env:"POSTGRES_USER" env-required:"true"`
 	Password string `env:"POSTGRES_PASSWORD" env-required:"true"`
 	DbName   string `env:"POSTGRES_DB" env-required:"true"`
+}
+type Images struct {
+	Path string `yaml:"basePath" env:"IMAGES_BASE_PATH" env-default:"./static/users/upload/"`
 }
 
 func Load(configPath string) *AppConfig {

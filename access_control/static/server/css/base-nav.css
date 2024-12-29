@@ -1,0 +1,67 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+nav {
+    display: flex; /* Use flexbox for the nav bar */
+    justify-content: space-between; /* Space between brand and links */
+    align-items: center; /* Vertically center items */
+    background-color: #4A90E2; /* Soft blue color */
+    color: white;
+    padding: 15px 30px; /* Increased padding for a nicer appearance */
+}
+
+nav ul {
+    list-style-type: none; /* Remove bullet points */
+    margin: 0;
+    padding: 0;
+    display: flex; /* Ensure the list items are in a row */
+}
+
+nav ul li {
+    margin-right: 30px; /* Increased spacing between items */
+}
+
+nav ul li:last-child {
+    margin-right: 0; /* Remove margin from the last item */
+}
+
+nav ul li a {
+    color: white;
+    text-decoration: none; /* Remove underline */
+    padding: 8px 15px; /* Add padding around the links */
+    border-radius: 5px; /* Rounded corners */
+    transition: background-color 0.3s, transform 0.2s; /* Smooth transition for hover effect */
+}
+
+nav ul li a:hover {
+    background-color: #357ABD; /* Darker blue on hover */
+    transform: scale(1.05); /* Slightly enlarge the link on hover */
+}
+
+nav .brand {
+    font-size: 24px; /* Larger font for brand */
+    font-weight: bold;
+}
+
+
+.inline {
+    display: inline;
+}
+
+.btn-link{
+    border:none;
+    outline:none;
+    background:none;
+    cursor:pointer;
+    color:#0000EE;
+    padding:0;
+    text-decoration:underline;
+    font-family:inherit;
+    font-size:inherit;
+}
+.btn-link:active{
+    color:#FF0000;
+}
