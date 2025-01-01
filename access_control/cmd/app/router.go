@@ -18,5 +18,7 @@ func setUpRouter( /*db, app*/ ) *chi.Mux {
 	router.Handle("/static/server/*", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
 	router.Get("/", images.GetIndexPage)
+	router.Get("/upload", images.GetUploadPage)
+	router.Post("/upload", images.GetUploadPage)
 	return router
 }

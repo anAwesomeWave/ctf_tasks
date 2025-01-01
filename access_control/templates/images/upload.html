@@ -1,0 +1,12 @@
+{{define "title"}} Pwnterest! Upload Your Image! {{end}}
+{{define "content"}}
+<h1> Upload new Image! </h1>
+<form
+        enctype="multipart/form-data"
+        action="/upload"
+        method="post"
+>
+    <input type="file" name="myFile" />
+    <input type="submit" value="upload" />
+</form>
+{{end}}
