@@ -6,13 +6,13 @@ volumes:
 services:
   db:
     image: postgres:13.10
-    env_file: config/.storage_env-public
+    env_file: config/.storage_env
     ports:
       - "54321:5432"  # non-default postgres port to prevent collision
     volumes:
       - pg_data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready", "-d", "db_prod" ]
+      test: [ "CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
       interval: 10s
       timeout: 60s
       retries: 5
