@@ -18,6 +18,8 @@ func setUpRouter(imagesApp app.App /*db, app*/) *chi.Mux {
 
 	router.Handle("/static/server/*", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
+	router.Get("/static/{userId}/{imageId}", images.GetImage(imagesApp))
+
 	router.Get("/", images.GetIndexPage)
 	router.Get("/upload", images.GetUploadPage)
 	router.Post("/upload", images.PostUploadImage(imagesApp))

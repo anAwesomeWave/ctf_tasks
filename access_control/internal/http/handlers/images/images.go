@@ -3,9 +3,12 @@ package images
 import (
 	"accessCtf/internal/app"
 	"fmt"
+	"github.com/go-chi/chi/v5"
 	"html/template"
+	"io"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 func GetIndexPage(w http.ResponseWriter, r *http.Request) {
@@ -55,5 +58,31 @@ func PostUploadImage(imageApp app.App) http.HandlerFunc {
 			return
 		}
 		w.Write([]byte("Success"))
+	}
+}
+
+func GetImage(imageApp app.App) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userId := chi.URLParam(r, "userId")
+		imageId := chi.URLParam(r, "imageId")
+		uiImageId, err := strconv.ParseUint(imageId, 10, 32)
+		if err != nil {
+			http.Error(w, "Invalid image id", http.StatusBadRequest)
+			return
+		}
+		file, err := imageApp.LoadImage(userId, uiImageId, app.DefaultImage)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "Internal error", http.StatusNotFound)
+			return
+		}
+		w.Header().Set("Content-Type", "image/png")
+		data, err := io.ReadAll(file)
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "Internal error", http.StatusInternalServerError)
+			return
+		}
+		w.Write(data)
 	}
 }

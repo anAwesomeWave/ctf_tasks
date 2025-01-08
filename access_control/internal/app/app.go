@@ -34,8 +34,8 @@ func (e *ImageAppError) Error() string {
 }
 
 type App interface {
-	LoadImage(id string, index uint, iType ImageType) (*os.File, error)
-	SaveImage(file multipart.File, id string, index uint, iType ImageType) error
+	LoadImage(id string, index uint64, iType ImageType) (*os.File, error)
+	SaveImage(file multipart.File, id string, index uint64, iType ImageType) error
 }
 
 type DefaultApp struct {
@@ -64,7 +64,7 @@ func NewDefaultApp(imagesDir, avatarsDir string) (*DefaultApp, error) {
 	}, nil
 }
 
-func (d DefaultApp) SaveImage(file multipart.File, id string, index uint, iType ImageType) error {
+func (d DefaultApp) SaveImage(file multipart.File, id string, index uint64, iType ImageType) error {
 	uploadPrefix := ""
 	switch iType {
 	case Avatar:
@@ -106,7 +106,7 @@ func (d DefaultApp) SaveImage(file multipart.File, id string, index uint, iType 
 			}
 		}
 	}
-	uploadPrefix += strconv.Itoa(int(index)) + ".jpeg"
+	uploadPrefix += strconv.FormatUint(index, 10) + ".jpeg"
 	if ex, err := isExists(uploadPrefix); err != nil || ex {
 		if err != nil {
 			return &ImageAppError{
@@ -150,6 +150,53 @@ func (d DefaultApp) SaveImage(file multipart.File, id string, index uint, iType 
 	return nil
 }
 
-func (d DefaultApp) LoadImage(id string, index uint, iType ImageType) (*os.File, error) {
-	return nil, nil
+func (d DefaultApp) loadDefaultImage(id string, index uint64) (*os.File, error) {
+	imagePath := d.basePathImages + id + "/" + strconv.FormatUint(index, 10) + ".jpeg"
+	if ex, err := isExists(imagePath); err != nil || !ex {
+		if err != nil {
+			return nil, &ImageAppError{
+				Code:    Path,
+				Message: err.Error(),
+			}
+		}
+		return nil, &ImageAppError{
+			Code:    Path,
+			Message: fmt.Sprintf("PATH ERROR: file %s doesn't exist", imagePath),
+		}
+	}
+	// check rights here (add params) isOwner, isAdmin, isPublic
+	return os.Open(imagePath)
+}
+
+func (d DefaultApp) loadAvatar(id string, index uint64) (*os.File, error) {
+	avatarsPath := d.basePathAvatars + id + "/" + strconv.FormatUint(index, 10) + ".jpeg"
+	if ex, err := isExists(avatarsPath); err != nil || !ex {
+		if err != nil {
+			return nil, &ImageAppError{
+				Code:    Path,
+				Message: err.Error(),
+			}
+		}
+		return nil, &ImageAppError{
+			Code:    Path,
+			Message: fmt.Sprintf("PATH ERROR: file %s doesn't exist", avatarsPath),
+		}
+	}
+	// check rights here (add params) isOwner, isAdmin, isPublic
+	return os.Open(avatarsPath)
+}
+
+func (d DefaultApp) LoadImage(id string, index uint64, iType ImageType) (*os.File, error) {
+	switch iType {
+	case DefaultImage:
+		return d.loadDefaultImage(id, index)
+	case Avatar:
+		return d.loadAvatar(id, index)
+	default:
+		return nil, &ImageAppError{
+			Code:    Internal,
+			Message: fmt.Sprintf("Image type is invalid. %s", iType),
+		}
+
+	}
 }
