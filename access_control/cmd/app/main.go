@@ -1,6 +1,7 @@
 package main
 
 import (
+	"accessCtf/internal/app"
 	"accessCtf/internal/config"
 	"fmt"
 	"github.com/joho/godotenv"
@@ -16,8 +17,11 @@ func main() {
 	}
 	cfg := config.Load("./config/local.yaml")
 	fmt.Println(*cfg)
-
-	router := setUpRouter()
+	defaultApp, err := app.NewDefaultApp(cfg.ImagesCfg.Path, cfg.ImagesCfg.AvatarsPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	router := setUpRouter(defaultApp)
 
 	serv := &http.Server{
 		Addr:         cfg.HTTPServerCfg.Address,

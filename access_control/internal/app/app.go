@@ -2,9 +2,11 @@ package app
 
 import (
 	"fmt"
+	"io"
 	"mime/multipart"
-	"net/http"
 	"os"
+	"strconv"
+	"strings"
 )
 
 type ImageType int
@@ -14,28 +16,140 @@ const (
 	DefaultImage ImageType = 1
 )
 
+type ErrorCode int
+
+const (
+	Path     ErrorCode = 1
+	Image    ErrorCode = 2
+	Internal ErrorCode = 3
+)
+
+type ImageAppError struct {
+	Code    ErrorCode
+	Message string
+}
+
+func (e *ImageAppError) Error() string {
+	return e.Message
+}
+
 type App interface {
-	LoadImage(id string, iType ImageType) (*os.File, error)
-	SaveImage(file multipart.File, iType ImageType) error
+	LoadImage(id string, index uint, iType ImageType) (*os.File, error)
+	SaveImage(file multipart.File, id string, index uint, iType ImageType) error
 }
 
 type DefaultApp struct {
-	//basePathImages
-	//basePathAvatars
+	basePathImages  string
+	basePathAvatars string
 }
 
-func validateFile(fileBytes []byte) error {
-	mimeType := http.DetectContentType(fileBytes)
+func isPathValid(path string) bool {
+	return !(strings.Contains(path, "..") || strings.HasPrefix(path, "/"))
+}
 
-	// Разрешённые типы файлов
-	allowedMimeTypes := map[string]bool{
-		"image/jpeg": true,
-		"image/png":  true,
+func NewDefaultApp(imagesDir, avatarsDir string) (*DefaultApp, error) {
+	if !isPathValid(imagesDir) || !isPathValid(avatarsDir) {
+		return nil, &ImageAppError{
+			Code: Path,
+			Message: fmt.Sprintf(
+				"PATH ERROR: Wrong image/avatar folder. Check ImageDir=%s, avatarDir=%s",
+				imagesDir,
+				avatarsDir,
+			),
+		}
 	}
+	return &DefaultApp{
+		imagesDir,
+		avatarsDir,
+	}, nil
+}
 
-	if !allowedMimeTypes[mimeType] {
-		return fmt.Errorf("unsupported MIME type: %s", mimeType)
+func (d DefaultApp) SaveImage(file multipart.File, id string, index uint, iType ImageType) error {
+	uploadPrefix := ""
+	switch iType {
+	case Avatar:
+		uploadPrefix = d.basePathAvatars
+	case DefaultImage:
+		uploadPrefix = d.basePathImages
+	default:
+		return &ImageAppError{
+			Code: Internal,
+			Message: fmt.Sprintf(
+				"INTERNAL ERROR: Incorrect Image iType value = %d",
+				iType,
+			),
+		}
 	}
+	// 1. check if user's dir exists. create if necessary
+	// 2. check if file doesn't exist
+	// 3. store file
+	uploadPrefix += id + "/"
+	if ex, err := isExists(uploadPrefix); err != nil || !ex {
+		if err != nil {
+			return &ImageAppError{
+				Code: Path,
+				Message: fmt.Sprintf(
+					"PATH ERROR: upload prefix error %s: %s",
+					uploadPrefix,
+					err.Error(),
+				),
+			}
+		}
+		// non-existing dir
+		if err := os.Mkdir(uploadPrefix, 0744); err != nil {
+			return &ImageAppError{
+				Code: Internal,
+				Message: fmt.Sprintf(
+					"INTERNAL ERROR: user id folder creating error: %s",
+					err.Error(),
+				),
+			}
+		}
+	}
+	uploadPrefix += strconv.Itoa(int(index)) + ".jpeg"
+	if ex, err := isExists(uploadPrefix); err != nil || ex {
+		if err != nil {
+			return &ImageAppError{
+				Code: Path,
+				Message: fmt.Sprintf(
+					"PATH ERROR: Error checking for image %s to be existed or not: %s",
+					uploadPrefix,
+					err.Error(),
+				),
+			}
+		}
+		return &ImageAppError{
+			Code: Path,
+			Message: fmt.Sprintf(
+				"PATH ERROR: image %s already exists",
+				uploadPrefix,
+			),
+		}
+	}
+	dst, err := os.Create(uploadPrefix)
+	if err != nil {
+		return &ImageAppError{
+			Code: Path,
+			Message: fmt.Sprintf("PATH ERROR: Unable to save image with path %s: %s",
+				uploadPrefix,
+				err.Error(),
+			),
+		}
+	}
+	defer dst.Close()
 
+	if _, err := io.Copy(dst, file); err != nil {
+		return &ImageAppError{
+			Code: Image,
+			Message: fmt.Sprintf("IMAGE ERROR: Unable to copy image data to file %s: %s",
+				dst,
+				err.Error(),
+			),
+		}
+	}
 	return nil
+}
+
+func (d DefaultApp) LoadImage(id string, index uint, iType ImageType) (*os.File, error) {
+	return nil, nil
 }

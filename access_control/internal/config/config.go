@@ -27,7 +27,8 @@ type Storage struct {
 	DbName   string `env:"POSTGRES_DB" env-required:"true"`
 }
 type Images struct {
-	Path string `yaml:"basePath" env:"IMAGES_BASE_PATH" env-default:"./static/users/upload/"`
+	Path        string `yaml:"basePath" env:"IMAGES_BASE_PATH" env-default:"./static/users/upload/"`
+	AvatarsPath string `yaml:"avatarsPath" env:"AVATARS_BASE_PATH" env-default:"./static/users/avatars/"`
 }
 
 func Load(configPath string) *AppConfig {

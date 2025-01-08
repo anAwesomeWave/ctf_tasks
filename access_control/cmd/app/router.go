@@ -1,13 +1,14 @@
 package main
 
 import (
+	"accessCtf/internal/app"
 	"accessCtf/internal/http/handlers/images"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"net/http"
 )
 
-func setUpRouter( /*db, app*/ ) *chi.Mux {
+func setUpRouter(imagesApp app.App /*db, app*/) *chi.Mux {
 	router := chi.NewRouter()
 	router.Use(middleware.RequestID)
 	router.Use(middleware.Logger)
@@ -19,6 +20,6 @@ func setUpRouter( /*db, app*/ ) *chi.Mux {
 
 	router.Get("/", images.GetIndexPage)
 	router.Get("/upload", images.GetUploadPage)
-	router.Post("/upload", images.GetUploadPage)
+	router.Post("/upload", images.PostUploadImage(imagesApp))
 	return router
 }
