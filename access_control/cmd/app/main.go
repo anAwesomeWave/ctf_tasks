@@ -3,6 +3,7 @@ package main
 import (
 	"accessCtf/internal/app"
 	"accessCtf/internal/config"
+	"accessCtf/internal/storage"
 	"fmt"
 	"github.com/joho/godotenv"
 	"log"
@@ -17,6 +18,13 @@ func main() {
 	}
 	cfg := config.Load("./config/local.yaml")
 	fmt.Println(*cfg)
+
+	_, err := storage.NewPgStorage(cfg.StorageCfg)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	defaultApp, err := app.NewDefaultApp(cfg.ImagesCfg.Path, cfg.ImagesCfg.AvatarsPath)
 	if err != nil {
 		log.Fatal(err)
