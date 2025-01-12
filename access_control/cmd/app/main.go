@@ -4,7 +4,6 @@ import (
 	"accessCtf/internal/app"
 	"accessCtf/internal/config"
 	"accessCtf/internal/storage"
-	"context"
 	"fmt"
 	"github.com/joho/godotenv"
 	"log"
@@ -21,24 +20,22 @@ func main() {
 	cfg := config.Load("./config/local.yaml")
 
 	fmt.Println(*cfg)
-	pgCtx, cancel := context.WithTimeout(context.Background(), time.Millisecond*500)
-	defer cancel()
-	pgStrg, err := storage.NewPgStorage(cfg.StorageCfg, pgCtx)
+	pgStrg, err := storage.NewPgStorage(cfg.StorageCfg, time.Millisecond*500)
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	uuid, err := pgStrg.CreateUser("timus", "77777Tim")
+	//uuid, err := pgStrg.CreateUser("timus", "77777Tim")
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(uuid.String())
+	//fmt.Println(uuid.String())
 	defaultApp, err := app.NewDefaultApp(cfg.ImagesCfg.Path, cfg.ImagesCfg.AvatarsPath)
 	if err != nil {
 		log.Fatal(err)
 	}
-	router := setUpRouter(defaultApp)
+	router := setUpRouter(defaultApp, pgStrg)
 
 	serv := &http.Server{
 		Addr:         cfg.HTTPServerCfg.Address,

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{block "title" .}} Pwnterest! {{ end }}</title>
+    <title>Pwnterest! {{block "title" .}}{{ end }}</title>
     <link rel="stylesheet" href="/static/server/css/base-nav.css">
 </head>
 <body>
@@ -11,13 +11,13 @@
     <nav>
         <ul> Welcome to assets PwnTerest</ul>
         {{ if not .isLogined }}
-        <li><a href="/auth/register">Register</a></li>
-        <li><a href="/auth/login">Login</a></li>
+        <li><a href="/users/signup">Register</a></li>
+        <li><a href="/users/login">Login</a></li>
 
         {{ else }}
 
         <a href="/users/me">See your Page</a>
-        <form action="/auth/logout" method="post" class="inline">
+        <form action="/users/logout" method="post" class="inline">
             <button type="submit" class="btn-link">Logout</button>
         </form>
         <a href="/images/upload">Upload new Image!</a>
