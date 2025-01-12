@@ -7,7 +7,6 @@ type Users struct {
 	Login        string
 	PasswordHash string
 	IsAdmin      bool // can be some int or struct for more roles
-	AvatarPath   string
 }
 
 type Images struct {

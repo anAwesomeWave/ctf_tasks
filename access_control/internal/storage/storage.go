@@ -2,8 +2,10 @@ package storage
 
 import (
 	"accessCtf/internal/config"
+	"accessCtf/internal/storage/models"
 	"accessCtf/internal/util"
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
@@ -22,7 +24,8 @@ var (
 
 type Storage interface {
 	CreateUser(login, password string) (*uuid.UUID, error)
-	//GetUserByUUID(id uuid.UUID) (*models.Users, error)
+	GetUser(login, password string) (*models.Users, error)
+	GetUserById(id uuid.UUID) (*models.Users, error)
 	//GetUserByLoginPassword(login, password string) (*models.Users, error)
 	//CreateImage(creator *models.Users, path string) (*models.Images, error)
 	//CreateAvatar(creator *models.Users, path string) (*models.Avatars, error)
@@ -93,4 +96,44 @@ func (p PgStorage) CreateUser(login, password string) (*uuid.UUID, error) {
 	}
 
 	return &id, nil
+}
+
+func (p PgStorage) GetUser(login, password string) (*models.Users, error) {
+	const fn = "storage.GetUser"
+
+	var user models.Users
+	stmt := `SELECT * FROM users WHERE login = $1`
+	ctx, cancel := context.WithTimeout(context.Background(), p.timeout)
+	defer cancel()
+
+	if err := p.Conn.QueryRow(ctx, stmt, login).Scan(&user.Id, &user.Login, &user.PasswordHash, &user.IsAdmin); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, fmt.Errorf("%s: User {%s} with password {%s} not found : %w", fn, login, password, ErrNotFound)
+		}
+		return nil, fmt.Errorf("%s: %w", fn, err)
+	}
+	if !util.IsHashEqualPassword(user.PasswordHash, password) {
+		return nil, fmt.Errorf("%s: User {%s} with password {%s} not found: passwords don't match : %w", fn, login, password, ErrNotFound)
+	}
+	return &user, nil
+}
+
+func (p PgStorage) GetUserById(id uuid.UUID) (*models.Users, error) {
+	const fn = "storage.GetUser"
+
+	var user models.Users
+	stmt := `SELECT * FROM users WHERE id = $1`
+	ctx, cancel := context.WithTimeout(context.Background(), p.timeout)
+	defer cancel()
+	binary, err := id.MarshalBinary()
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", fn, err)
+	}
+	if err := p.Conn.QueryRow(ctx, stmt, binary).Scan(&user.Id, &user.Login, &user.PasswordHash, &user.IsAdmin); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, fmt.Errorf("%s: User with id {%s} not found : %w", fn, id.String(), ErrNotFound)
+		}
+		return nil, fmt.Errorf("%s: %w", fn, err)
+	}
+	return &user, nil
 }

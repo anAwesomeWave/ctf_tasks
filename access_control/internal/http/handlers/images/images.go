@@ -2,6 +2,7 @@ package images
 
 import (
 	"accessCtf/internal/app"
+	midauth "accessCtf/internal/http/middleware/auth"
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"html/template"
@@ -17,8 +18,8 @@ func GetIndexPage(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 		return
 	}
-
-	if err := t.Execute(w, map[string]interface{}{"isLogined": false}); err != nil {
+	_, found := midauth.UserFromContext(r.Context())
+	if err := t.Execute(w, map[string]interface{}{"isLogined": found}); err != nil {
 		log.Println(err)
 		return
 	}

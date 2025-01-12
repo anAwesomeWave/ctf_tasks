@@ -26,11 +26,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-	//uuid, err := pgStrg.CreateUser("timus", "77777Tim")
-	if err != nil {
-		log.Fatal(err)
-	}
-	//fmt.Println(uuid.String())
 	defaultApp, err := app.NewDefaultApp(cfg.ImagesCfg.Path, cfg.ImagesCfg.AvatarsPath)
 	if err != nil {
 		log.Fatal(err)
