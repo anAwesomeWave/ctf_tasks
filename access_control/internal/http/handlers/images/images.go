@@ -17,7 +17,7 @@ import (
 
 func GetIndexPage(strg storage.Storage) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		_, isLogined := midauth.UserFromContext(r.Context())
+		user, isLogined := midauth.UserFromContext(r.Context())
 		images, err := strg.GetAllImagesWithUserInfo()
 		if err != nil {
 			log.Println(err)
@@ -32,8 +32,8 @@ func GetIndexPage(strg storage.Storage) http.HandlerFunc {
 				common.ServeError(w, http.StatusInternalServerError, "Internal server error", isLogined)
 			}
 			images[ind].ImagePath = "/static/images/" + after
-			if images[ind].IsAdmin {
-				images[ind].ImagePath = "./static/users/upload/bla-bla"
+			if images[ind].IsAdmin && !(isLogined && user.IsAdmin) {
+				images[ind].ImagePath = "/static/images/default/1.jpeg"
 			}
 		}
 		t, err := template.ParseFiles("./templates/common/base.html", "./templates/images/index.html")

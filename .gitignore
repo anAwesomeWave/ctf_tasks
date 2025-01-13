@@ -1,4 +1,4 @@
 .idea/
+!access_control/static/users/upload/default
 access_control/static/users/upload/*
-!access_control/static/users/upload/.gitkeep
 *.exe
