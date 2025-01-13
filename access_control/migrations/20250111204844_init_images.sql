@@ -3,6 +3,7 @@
 CREATE TABLE IF NOT EXISTS images (
     id SERIAL PRIMARY KEY,
     path VARCHAR(150) NOT NULL,
+    path_id INTEGER NOT NULL UNIQUE,
     creator_id UUID REFERENCES users(id) ON DELETE SET NULL
 );
 -- +goose StatementEnd

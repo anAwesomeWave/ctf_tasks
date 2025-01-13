@@ -35,7 +35,7 @@ func (e *ImageAppError) Error() string {
 
 type App interface {
 	LoadImage(id string, index uint64, iType ImageType) (*os.File, error)
-	SaveImage(file multipart.File, id string, index uint64, iType ImageType) error
+	SaveImage(file multipart.File, id string, index int64, iType ImageType) (string, error)
 }
 
 type DefaultApp struct {
@@ -64,7 +64,7 @@ func NewDefaultApp(imagesDir, avatarsDir string) (*DefaultApp, error) {
 	}, nil
 }
 
-func (d DefaultApp) SaveImage(file multipart.File, id string, index uint64, iType ImageType) error {
+func (d DefaultApp) SaveImage(file multipart.File, id string, index int64, iType ImageType) (string, error) {
 	uploadPrefix := ""
 	switch iType {
 	case Avatar:
@@ -72,7 +72,7 @@ func (d DefaultApp) SaveImage(file multipart.File, id string, index uint64, iTyp
 	case DefaultImage:
 		uploadPrefix = d.basePathImages
 	default:
-		return &ImageAppError{
+		return "", &ImageAppError{
 			Code: Internal,
 			Message: fmt.Sprintf(
 				"INTERNAL ERROR: Incorrect Image iType value = %d",
@@ -86,7 +86,7 @@ func (d DefaultApp) SaveImage(file multipart.File, id string, index uint64, iTyp
 	uploadPrefix += id + "/"
 	if ex, err := isExists(uploadPrefix); err != nil || !ex {
 		if err != nil {
-			return &ImageAppError{
+			return "", &ImageAppError{
 				Code: Path,
 				Message: fmt.Sprintf(
 					"PATH ERROR: upload prefix error %s: %s",
@@ -97,7 +97,7 @@ func (d DefaultApp) SaveImage(file multipart.File, id string, index uint64, iTyp
 		}
 		// non-existing dir
 		if err := os.Mkdir(uploadPrefix, 0744); err != nil {
-			return &ImageAppError{
+			return "", &ImageAppError{
 				Code: Internal,
 				Message: fmt.Sprintf(
 					"INTERNAL ERROR: user id folder creating error: %s",
@@ -106,10 +106,10 @@ func (d DefaultApp) SaveImage(file multipart.File, id string, index uint64, iTyp
 			}
 		}
 	}
-	uploadPrefix += strconv.FormatUint(index, 10) + ".jpeg"
+	uploadPrefix += strconv.FormatInt(index, 10) + ".jpeg"
 	if ex, err := isExists(uploadPrefix); err != nil || ex {
 		if err != nil {
-			return &ImageAppError{
+			return "", &ImageAppError{
 				Code: Path,
 				Message: fmt.Sprintf(
 					"PATH ERROR: Error checking for image %s to be existed or not: %s",
@@ -118,7 +118,7 @@ func (d DefaultApp) SaveImage(file multipart.File, id string, index uint64, iTyp
 				),
 			}
 		}
-		return &ImageAppError{
+		return "", &ImageAppError{
 			Code: Path,
 			Message: fmt.Sprintf(
 				"PATH ERROR: image %s already exists",
@@ -128,7 +128,7 @@ func (d DefaultApp) SaveImage(file multipart.File, id string, index uint64, iTyp
 	}
 	dst, err := os.Create(uploadPrefix)
 	if err != nil {
-		return &ImageAppError{
+		return "", &ImageAppError{
 			Code: Path,
 			Message: fmt.Sprintf("PATH ERROR: Unable to save image with path %s: %s",
 				uploadPrefix,
@@ -139,7 +139,7 @@ func (d DefaultApp) SaveImage(file multipart.File, id string, index uint64, iTyp
 	defer dst.Close()
 
 	if _, err := io.Copy(dst, file); err != nil {
-		return &ImageAppError{
+		return "", &ImageAppError{
 			Code: Image,
 			Message: fmt.Sprintf("IMAGE ERROR: Unable to copy image data to file %s: %s",
 				dst,
@@ -147,7 +147,7 @@ func (d DefaultApp) SaveImage(file multipart.File, id string, index uint64, iTyp
 			),
 		}
 	}
-	return nil
+	return uploadPrefix, nil
 }
 
 func (d DefaultApp) loadDefaultImage(id string, index uint64) (*os.File, error) {

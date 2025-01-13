@@ -3,7 +3,6 @@ package main
 import (
 	"accessCtf/internal/config"
 	"accessCtf/internal/storage"
-	"context"
 	"flag"
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/jackc/pgx/v5/stdlib"
@@ -11,6 +10,7 @@ import (
 	"github.com/pressly/goose"
 	"log"
 	"os"
+	"time"
 )
 
 func main() {
@@ -60,7 +60,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("MIGRATOR: Error reading config file: %v", err)
 	}
-	pool, err := storage.NewPgStorage(strgCfg, context.Background())
+	pool, err := storage.NewPgStorage(strgCfg, time.Second*2)
 	if err != nil {
 		log.Fatalf("MIGRATOR: Error connecting to database: %v", err)
 	}

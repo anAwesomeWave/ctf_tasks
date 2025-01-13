@@ -45,7 +45,7 @@ func setUpRouter(imagesApp app.App, strg storage.Storage) *chi.Mux {
 		r.Route("/upload", func(subR chi.Router) {
 			subR.Use(midauth.CustomAuthenticator(auth.TokenAuth))
 			subR.Get("/", images.GetUploadPage)
-			subR.Post("/", images.PostUploadImage(imagesApp))
+			subR.Post("/", images.PostUploadImage(imagesApp, strg))
 		})
 	})
 	return router

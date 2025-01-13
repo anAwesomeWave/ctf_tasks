@@ -14,6 +14,7 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	pgxUUID "github.com/vgarvardt/pgx-google-uuid/v5"
+	"log"
 	"time"
 )
 
@@ -26,6 +27,8 @@ type Storage interface {
 	CreateUser(login, password string) (*uuid.UUID, error)
 	GetUser(login, password string) (*models.Users, error)
 	GetUserById(id uuid.UUID) (*models.Users, error)
+	GetMaxUserImageId(userId uuid.UUID) (int64, error)
+	InsertImage(userId uuid.UUID, imageId int64, imagePath string) (int64, error)
 	//GetUserByLoginPassword(login, password string) (*models.Users, error)
 	//CreateImage(creator *models.Users, path string) (*models.Images, error)
 	//CreateAvatar(creator *models.Users, path string) (*models.Avatars, error)
@@ -136,4 +139,50 @@ func (p PgStorage) GetUserById(id uuid.UUID) (*models.Users, error) {
 		return nil, fmt.Errorf("%s: %w", fn, err)
 	}
 	return &user, nil
+}
+func (p PgStorage) GetMaxUserImageId(userId uuid.UUID) (int64, error) {
+	const fn = "storage.GetMaxUserImageId"
+	var imageId int64
+	stmt := `SELECT coalesce(MAX(path_id), 0) FROM images WHERE images.creator_id  = $1`
+	ctx, cancel := context.WithTimeout(context.Background(), p.timeout)
+	defer cancel()
+	binary, err := userId.MarshalBinary()
+	if err != nil {
+		return 0, fmt.Errorf("%s: %w", fn, err)
+	}
+	if err := p.Conn.QueryRow(ctx, stmt, binary).Scan(&imageId); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return 0, fmt.Errorf("%s: No images found for user with id {%s}: %w", fn, userId.String(), ErrNotFound)
+		}
+		return 0, fmt.Errorf("%s: %w", fn, err)
+	}
+	return imageId, nil
+}
+
+func (p PgStorage) InsertImage(userId uuid.UUID, imageId int64, imagePath string) (int64, error) {
+	const fn = "storage.InsertImage"
+
+	var id int64
+
+	binary, err := userId.MarshalBinary()
+	if err != nil {
+		return 0, fmt.Errorf("%s: %w", fn, err)
+	}
+
+	stmt := `INSERT INTO images(path, path_id, creator_id) VALUES($1, $2, $3) RETURNING id`
+	ctx, cancel := context.WithTimeout(context.Background(), p.timeout)
+	defer cancel()
+
+	if err := p.Conn.QueryRow(ctx, stmt, imagePath, imageId, binary).Scan(&id); err != nil {
+		var pgError *pgconn.PgError
+		if errors.As(err, &pgError) {
+			if pgError.Code == pgerrcode.UniqueViolation {
+				log.Println(fn, pgError)
+				return 0, fmt.Errorf("%s: image is not unique %d, %s: %w", fn, imageId, imagePath, ErrExists)
+			}
+		}
+		return 0, fmt.Errorf("%s: %w", fn, err)
+	}
+
+	return id, nil
 }

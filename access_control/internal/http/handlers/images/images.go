@@ -2,8 +2,10 @@ package images
 
 import (
 	"accessCtf/internal/app"
+	"accessCtf/internal/http/common"
 	midauth "accessCtf/internal/http/middleware/auth"
-	"fmt"
+	"accessCtf/internal/storage"
+	"errors"
 	"github.com/go-chi/chi/v5"
 	"html/template"
 	"io"
@@ -38,8 +40,31 @@ func GetUploadPage(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func PostUploadImage(imageApp app.App) http.HandlerFunc {
+func PostUploadImage(imageApp app.App, strg storage.Storage) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		/*
+			1. получить юзера
+			2. получить максимальный для него id картинки
+			3. загрузить картинку, убедиться, что все ок
+			4. обновить таблицу с картинками
+
+			! возможно также проверить, сколько занимает его директория !
+		*/
+		user, ok := midauth.UserFromContext(r.Context())
+		if !ok || user == nil {
+			common.ServeError(w, 401, "Unauthorized!", false)
+			return
+		}
+		maxImageidForUser, err := strg.GetMaxUserImageId(user.Id)
+		if err != nil {
+			if errors.Is(err, storage.ErrNotFound) {
+				maxImageidForUser = 0
+			} else {
+				log.Println(err)
+				common.ServeError(w, 500, "Internal error", user != nil)
+				return
+			}
+		}
 		if err := r.ParseMultipartForm(10 << 20); err != nil {
 			http.Error(w, "File too large", http.StatusBadRequest)
 			return
@@ -47,15 +72,40 @@ func PostUploadImage(imageApp app.App) http.HandlerFunc {
 
 		file, handler, err := r.FormFile("myFile")
 		if err != nil {
-			fmt.Println("Error Retrieving the File")
-			fmt.Println(err)
+			log.Println("Error Retrieving the File")
+			log.Println(err)
+			common.ServeError(
+				w,
+				http.StatusInternalServerError,
+				"Error uploading image.",
+				false,
+			)
 			return
 		}
 		defer func() { _ = file.Close() }()
 		_ = handler
-		if err := imageApp.SaveImage(file, "test-user", 1, app.DefaultImage); err != nil {
-			fmt.Println(err)
-			http.Error(w, "Internal Error", http.StatusInternalServerError)
+		path, err := imageApp.SaveImage(file, user.Id.String(), maxImageidForUser+1, app.DefaultImage)
+		if err != nil {
+			log.Println(err)
+			common.ServeError(
+				w,
+				http.StatusInternalServerError,
+				"Error saving image.",
+				false,
+			)
+			return
+		}
+
+		// store to db
+		_, err = strg.InsertImage(user.Id, maxImageidForUser+1, path)
+		if err != nil {
+			log.Println(err)
+			common.ServeError(
+				w,
+				http.StatusInternalServerError,
+				"Error uploading image.",
+				false,
+			)
 			return
 		}
 		w.Write([]byte("Success"))

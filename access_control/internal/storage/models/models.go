@@ -12,11 +12,13 @@ type Users struct {
 type Images struct {
 	Id        int64
 	Path      string
+	PathId    int64
 	CreatorId uuid.UUID
 }
 
 type Avatars struct {
 	Id      int64
 	Path    string
+	PathId  int64
 	OwnerId uuid.UUID
 }
