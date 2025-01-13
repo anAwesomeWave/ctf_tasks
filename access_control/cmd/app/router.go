@@ -30,15 +30,23 @@ func setUpRouter(imagesApp app.App, strg storage.Storage) *chi.Mux {
 
 	router.Handle("/static/server/*", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
-	router.Get("/static/{userId}/{imageId}", images.GetImage(imagesApp))
+	router.Get("/static/avatars/{userId}/{imageId}", images.GetImage(imagesApp))
 
 	router.Get("/", images.GetIndexPage)
-	router.Get("/upload", images.GetUploadPage)
-	router.Post("/upload", images.PostUploadImage(imagesApp))
 
 	router.Get("/users/signup", auth.GetSignUpPage)
 	router.Post("/users/signup", auth.PostSignUpPage(strg))
 	router.Get("/users/login", auth.GetLoginPage)
 	router.Post("/users/login", auth.PostLoginPage(strg))
+	router.Post("/users/logout", auth.Logout)
+
+	router.Route("/static/images", func(r chi.Router) {
+		r.Get("/{userId}/{imageId}", images.GetImage(imagesApp))
+		r.Route("/upload", func(subR chi.Router) {
+			subR.Use(midauth.CustomAuthenticator(auth.TokenAuth))
+			subR.Get("/", images.GetUploadPage)
+			subR.Post("/", images.PostUploadImage(imagesApp))
+		})
+	})
 	return router
 }

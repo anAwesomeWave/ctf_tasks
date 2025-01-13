@@ -185,3 +185,18 @@ func PostLoginPage(strg storage.Storage) http.HandlerFunc {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 	}
 }
+
+func Logout(w http.ResponseWriter, r *http.Request) {
+	c := &http.Cookie{
+		Name:     "jwt",
+		Value:    "",
+		Path:     "/",
+		Expires:  time.Unix(0, 0),
+		HttpOnly: true,
+		Secure:   true,
+	}
+
+	http.SetCookie(w, c)
+
+	http.Redirect(w, r, "/users/login", http.StatusSeeOther)
+}

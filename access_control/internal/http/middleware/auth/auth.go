@@ -1,12 +1,14 @@
 package auth
 
 import (
+	"accessCtf/internal/http/common"
 	"accessCtf/internal/storage"
 	"accessCtf/internal/storage/models"
 	"context"
 	"errors"
 	"github.com/go-chi/jwtauth"
 	"github.com/google/uuid"
+	"github.com/lestrrat-go/jwx/jwt"
 	"log"
 	"net/http"
 )
@@ -57,4 +59,20 @@ func GetUserByJwtToken(strg storage.Storage) func(next http.Handler) http.Handle
 func UserFromContext(ctx context.Context) (*models.Users, bool) {
 	user, ok := ctx.Value(userContextKey).(*models.Users)
 	return user, ok
+}
+
+func CustomAuthenticator(ja *jwtauth.JWTAuth) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		hfn := func(w http.ResponseWriter, r *http.Request) {
+			token, _, err := jwtauth.FromContext(r.Context())
+
+			if err != nil || token == nil || jwt.Validate(token) != nil {
+				common.ServeError(w, 401, "Unauthorized! please, login to your account", false)
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		}
+		return http.HandlerFunc(hfn)
+	}
 }
