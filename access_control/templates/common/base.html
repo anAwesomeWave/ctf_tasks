@@ -9,7 +9,7 @@
 <body>
 <header>
     <nav>
-        <ul> Welcome to assets PwnTerest</ul>
+        <ul><a href="/">Welcome to assets PwnTerest</a></ul>
         {{ if not .isLogined }}
         <li><a href="/users/signup">Register</a></li>
         <li><a href="/users/login">Login</a></li>
@@ -17,9 +17,7 @@
         {{ else }}
 
         <a href="/users/me">See your Page</a>
-        <form action="/users/logout" method="post" class="inline">
-            <button type="submit" class="btn-link">Logout</button>
-        </form>
+        <a href="/users/logout">Logout</a>
         <a href="/static/images/upload">Upload new Image!</a>
         <a href="/">View All other Images!</a>
         {{ end }}

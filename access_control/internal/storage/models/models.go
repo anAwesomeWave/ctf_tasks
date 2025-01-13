@@ -1,6 +1,9 @@
 package models
 
-import "github.com/google/uuid"
+import (
+	"github.com/google/uuid"
+	"time"
+)
 
 type Users struct {
 	Id           uuid.UUID
@@ -10,17 +13,19 @@ type Users struct {
 }
 
 type Images struct {
-	Id        int64
-	Path      string
-	PathId    int64
-	CreatorId uuid.UUID
+	Id           int64
+	Path         string
+	PathId       int64
+	CreatorId    uuid.UUID
+	CreationTime time.Time
 }
 
 type Avatars struct {
-	Id      int64
-	Path    string
-	PathId  int64
-	OwnerId uuid.UUID
+	Id           int64
+	Path         string
+	PathId       int64
+	OwnerId      uuid.UUID
+	CreationTime time.Time
 }
 
 type ImageWithUser struct {

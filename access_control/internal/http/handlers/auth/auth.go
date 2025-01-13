@@ -2,6 +2,7 @@ package auth
 
 import (
 	"accessCtf/internal/http/common"
+	midauth "accessCtf/internal/http/middleware/auth"
 	"accessCtf/internal/storage"
 	"errors"
 	"fmt"
@@ -106,13 +107,14 @@ func PostSignUpPage(strg storage.Storage) http.HandlerFunc {
 
 func GetLoginPage(w http.ResponseWriter, r *http.Request) {
 	_, isInvalid := r.URL.Query()[INVAILD_CREDENTIALS_QUERY]
+	_, isLogined := midauth.UserFromContext(r.Context())
 	t, err := template.ParseFiles("./templates/common/base.html", "./templates/auth/login.html")
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
-	if err := t.Execute(w, map[string]interface{}{"isLogined": false, "isInvalid": isInvalid}); err != nil {
+	if err := t.Execute(w, map[string]interface{}{"isLogined": isLogined, "isInvalid": isInvalid}); err != nil {
 		log.Println(err)
 		return
 	}

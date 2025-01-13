@@ -51,17 +51,22 @@ nav .brand {
     display: inline;
 }
 
-.btn-link{
-    border:none;
-    outline:none;
-    background:none;
-    cursor:pointer;
-    color:#0000EE;
-    padding:0;
-    text-decoration:underline;
-    font-family:inherit;
-    font-size:inherit;
-}
-.btn-link:active{
-    color:#FF0000;
+/*.btn-link{*/
+/*    border:none;*/
+/*    outline:none;*/
+/*    background:none;*/
+/*    cursor:pointer;*/
+/*    color:#0000EE;*/
+/*    padding:0;*/
+/*    text-decoration:underline;*/
+/*    font-family:inherit;*/
+/*    font-size:inherit;*/
+/*}*/
+/*.btn-link:active{*/
+/*    color:#FF0000;*/
+/*}*/
+
+header a {
+    color: white;
+    text-decoration: none;
 }

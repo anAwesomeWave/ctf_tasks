@@ -49,13 +49,14 @@ func GetIndexPage(strg storage.Storage) http.HandlerFunc {
 }
 
 func GetUploadPage(w http.ResponseWriter, r *http.Request) {
+	_, isLogined := midauth.UserFromContext(r.Context())
 	t, err := template.ParseFiles("./templates/common/base.html", "./templates/images/upload.html")
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
-	if err := t.Execute(w, map[string]interface{}{"isLogined": false}); err != nil {
+	if err := t.Execute(w, map[string]interface{}{"isLogined": isLogined}); err != nil {
 		log.Println(err)
 		return
 	}
@@ -129,7 +130,7 @@ func PostUploadImage(imageApp app.App, strg storage.Storage) http.HandlerFunc {
 			)
 			return
 		}
-		w.Write([]byte("Success"))
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 	}
 }
 

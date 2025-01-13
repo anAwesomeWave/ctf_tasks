@@ -196,7 +196,7 @@ func (p PgStorage) InsertImage(userId uuid.UUID, imageId int64, imagePath string
 func (p PgStorage) GetAllImagesWithUserInfo() ([]*models.ImageWithUser, error) {
 	const fn = "storage.GetAllImagesWithUserInfo"
 
-	stmt := `SELECT path, login, is_admin FROM users JOIN images ON images.creator_id = users.id`
+	stmt := `SELECT path, login, is_admin FROM users JOIN images ON images.creator_id = users.id ORDER BY creation_time DESC`
 	ctx, cancel := context.WithTimeout(context.Background(), p.timeout)
 	defer cancel()
 	rows, err := p.Conn.Query(ctx, stmt)

@@ -33,13 +33,14 @@ func GetUserByJwtToken(strg storage.Storage) func(next http.Handler) http.Handle
 			userIdString, ok := claims["user_id"].(string)
 			if !ok {
 				log.Printf("%v: Cannot get userId from claims user_id - %v", fn, claims["user_id"])
-				http.Error(w, "Invalid token", http.StatusInternalServerError)
+
+				common.ServeError(w, http.StatusInternalServerError, "Invalid token", true)
 				return
 			}
 			userUUID, err := uuid.Parse(userIdString)
 			if err != nil {
 				log.Printf("%s: Cannot parse token string into UUID - %s", fn, userIdString)
-				http.Error(w, "Invalid token", http.StatusInternalServerError)
+				common.ServeError(w, http.StatusInternalServerError, "Invalid token", true)
 				return
 			}
 			user, err := strg.GetUserById(userUUID)
@@ -47,7 +48,7 @@ func GetUserByJwtToken(strg storage.Storage) func(next http.Handler) http.Handle
 				user = nil
 				// за это отвечает jwtauth.Authenticator
 				log.Printf("%s: User with id %v not found in database: %v\n", fn, userUUID, err)
-				http.Error(w, "User not found in database", http.StatusInternalServerError)
+				common.ServeError(w, http.StatusInternalServerError, "User not found in database", true)
 				return
 			}
 			ctx := context.WithValue(r.Context(), userContextKey, user)

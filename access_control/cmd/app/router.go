@@ -21,31 +21,33 @@ func setUpRouter(imagesApp app.App, strg storage.Storage) *chi.Mux {
 	router.Use(middleware.URLFormat) // удобно брать из урлов данные
 	router.Use(middleware.StripSlashes)
 
-	router.Use(jwtauth.Verifier(auth.TokenAuth))
-	router.Use(midauth.GetUserByJwtToken(strg))
+	router.Get("/users/logout", auth.Logout) // unprotected
+	router.Group(func(authR chi.Router) {
+		authR.Use(jwtauth.Verifier(auth.TokenAuth))
+		authR.Use(midauth.GetUserByJwtToken(strg))
 
-	router.NotFound(func(w http.ResponseWriter, r *http.Request) {
-		common.ServeError(w, http.StatusNotFound, "Not Found", false)
-	})
+		authR.NotFound(func(w http.ResponseWriter, r *http.Request) {
+			common.ServeError(w, http.StatusNotFound, "Not Found", false)
+		})
 
-	router.Handle("/static/server/*", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+		authR.Handle("/static/server/*", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
-	router.Get("/static/avatars/{userId}/{imageId}", images.GetImage(imagesApp))
+		authR.Get("/static/avatars/{userId}/{imageId}", images.GetImage(imagesApp))
 
-	router.Get("/", images.GetIndexPage(strg))
+		authR.Get("/", images.GetIndexPage(strg))
 
-	router.Get("/users/signup", auth.GetSignUpPage)
-	router.Post("/users/signup", auth.PostSignUpPage(strg))
-	router.Get("/users/login", auth.GetLoginPage)
-	router.Post("/users/login", auth.PostLoginPage(strg))
-	router.Post("/users/logout", auth.Logout)
+		authR.Get("/users/signup", auth.GetSignUpPage)
+		authR.Post("/users/signup", auth.PostSignUpPage(strg))
+		authR.Get("/users/login", auth.GetLoginPage)
+		authR.Post("/users/login", auth.PostLoginPage(strg))
 
-	router.Route("/static/images", func(r chi.Router) {
-		r.Get("/{userId}/{imageId}", images.GetImage(imagesApp))
-		r.Route("/upload", func(subR chi.Router) {
-			subR.Use(midauth.CustomAuthenticator(auth.TokenAuth))
-			subR.Get("/", images.GetUploadPage)
-			subR.Post("/", images.PostUploadImage(imagesApp, strg))
+		authR.Route("/static/images", func(r chi.Router) {
+			r.Get("/{userId}/{imageId}", images.GetImage(imagesApp))
+			r.Route("/upload", func(subR chi.Router) {
+				subR.Use(midauth.CustomAuthenticator(auth.TokenAuth))
+				subR.Get("/", images.GetUploadPage)
+				subR.Post("/", images.PostUploadImage(imagesApp, strg))
+			})
 		})
 	})
 	return router
