@@ -33,7 +33,7 @@ func GetIndexPage(strg storage.Storage) http.HandlerFunc {
 			}
 			images[ind].ImagePath = "/static/images/" + after
 			if images[ind].IsAdmin && !(isLogined && user.IsAdmin) {
-				images[ind].ImagePath = "/static/images/default/1.jpeg"
+				images[ind].ImagePath = "/static/images/default/1.jpeg" // TODO: Refactor. part of a config?
 			}
 		}
 		t, err := template.ParseFiles("./templates/common/base.html", "./templates/images/index.html")
@@ -136,24 +136,50 @@ func PostUploadImage(imageApp app.App, strg storage.Storage) http.HandlerFunc {
 
 func GetImage(imageApp app.App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		_, isPublic := r.URL.Query()["is_public"]
+		user, userFound := midauth.UserFromContext(r.Context())
 		userId := chi.URLParam(r, "userId")
 		imageId := chi.URLParam(r, "imageId")
+		if !(isPublic || (userFound && (user.IsAdmin || user.Id.String() == userId))) {
+			common.ServeError(
+				w,
+				http.StatusUnauthorized,
+				"you have no rights to view this image!!!",
+				user != nil,
+			)
+			return
+		}
 		uiImageId, err := strconv.ParseUint(imageId, 10, 32)
 		if err != nil {
-			http.Error(w, "Invalid image id", http.StatusBadRequest)
+			common.ServeError(
+				w,
+				http.StatusBadRequest,
+				"Invalid image id",
+				user != nil,
+			)
 			return
 		}
 		file, err := imageApp.LoadImage(userId, uiImageId, app.DefaultImage)
 		if err != nil {
 			log.Println(err)
-			http.Error(w, "Internal error", http.StatusNotFound)
+			common.ServeError(
+				w,
+				http.StatusInternalServerError,
+				"Internal error",
+				user != nil,
+			)
 			return
 		}
 		w.Header().Set("Content-Type", "image/png")
 		data, err := io.ReadAll(file)
 		if err != nil {
 			log.Println(err)
-			http.Error(w, "Internal error", http.StatusInternalServerError)
+			common.ServeError(
+				w,
+				http.StatusInternalServerError,
+				"Internal error",
+				user != nil,
+			)
 			return
 		}
 		w.Write(data)

@@ -183,7 +183,6 @@ func (d DefaultApp) loadAvatar(id string, index uint64) (*os.File, error) {
 			Message: fmt.Sprintf("PATH ERROR: file %s doesn't exist", avatarsPath),
 		}
 	}
-	// check rights here (add params) isOwner, isAdmin, isPublic
 	return os.Open(avatarsPath)
 }
 
