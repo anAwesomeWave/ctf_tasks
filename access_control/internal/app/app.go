@@ -36,6 +36,7 @@ func (e *ImageAppError) Error() string {
 type App interface {
 	LoadImage(id string, index uint64, iType ImageType) (*os.File, error)
 	SaveImage(file multipart.File, id string, index int64, iType ImageType) (string, error)
+	//GetDefaultImagePath() (string, error)
 }
 
 type DefaultApp struct {

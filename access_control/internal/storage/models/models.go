@@ -22,3 +22,9 @@ type Avatars struct {
 	PathId  int64
 	OwnerId uuid.UUID
 }
+
+type ImageWithUser struct {
+	ImagePath string
+	Login     string
+	IsAdmin   bool
+}

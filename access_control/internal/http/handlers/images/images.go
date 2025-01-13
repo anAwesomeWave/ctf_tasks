@@ -12,18 +12,39 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
-func GetIndexPage(w http.ResponseWriter, r *http.Request) {
-	t, err := template.ParseFiles("./templates/common/base.html", "./templates/images/index.html")
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	_, found := midauth.UserFromContext(r.Context())
-	if err := t.Execute(w, map[string]interface{}{"isLogined": found}); err != nil {
-		log.Println(err)
-		return
+func GetIndexPage(strg storage.Storage) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		_, isLogined := midauth.UserFromContext(r.Context())
+		images, err := strg.GetAllImagesWithUserInfo()
+		if err != nil {
+			log.Println(err)
+			common.ServeError(w, http.StatusInternalServerError, "Internal server error", isLogined)
+			return
+		}
+		for ind := range images {
+			log.Println(images[ind].ImagePath)
+			after, found := strings.CutPrefix(images[ind].ImagePath, "./static/users/upload/")
+			if !found {
+				log.Println("ERROR. STRANGE STRING PATTERN:", images[ind].ImagePath)
+				common.ServeError(w, http.StatusInternalServerError, "Internal server error", isLogined)
+			}
+			images[ind].ImagePath = "/static/images/" + after
+			if images[ind].IsAdmin {
+				images[ind].ImagePath = "./static/users/upload/bla-bla"
+			}
+		}
+		t, err := template.ParseFiles("./templates/common/base.html", "./templates/images/index.html")
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		if err := t.Execute(w, map[string]interface{}{"isLogined": isLogined, "images": images}); err != nil {
+			log.Println(err)
+			return
+		}
 	}
 }
 

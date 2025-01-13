@@ -32,7 +32,7 @@ func setUpRouter(imagesApp app.App, strg storage.Storage) *chi.Mux {
 
 	router.Get("/static/avatars/{userId}/{imageId}", images.GetImage(imagesApp))
 
-	router.Get("/", images.GetIndexPage)
+	router.Get("/", images.GetIndexPage(strg))
 
 	router.Get("/users/signup", auth.GetSignUpPage)
 	router.Post("/users/signup", auth.PostSignUpPage(strg))

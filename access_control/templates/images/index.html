@@ -1,3 +1,15 @@
 {{define "content"}}
 <h1> Welcome to Pwnterest! World's largest collection of images!</h1>
+
+<h2> All images: </h2>
+<ul>
+    {{if eq (len .images) 0 }}
+    <h3> No images found :( </h3>
+    {{else}}
+    {{range .images}}
+    <li>Name: {{.Login}}<img src="{{.ImagePath}}?is_public=true" alt="something went wrong" height="500"></li>
+    {{end}}
+    {{end}}
+</ul>
+
 {{end}}

@@ -29,6 +29,8 @@ type Storage interface {
 	GetUserById(id uuid.UUID) (*models.Users, error)
 	GetMaxUserImageId(userId uuid.UUID) (int64, error)
 	InsertImage(userId uuid.UUID, imageId int64, imagePath string) (int64, error)
+	//IsAdmin(userId uuid.UUID) (bool, error)
+	GetAllImagesWithUserInfo() ([]*models.ImageWithUser, error)
 	//GetUserByLoginPassword(login, password string) (*models.Users, error)
 	//CreateImage(creator *models.Users, path string) (*models.Images, error)
 	//CreateAvatar(creator *models.Users, path string) (*models.Avatars, error)
@@ -185,4 +187,33 @@ func (p PgStorage) InsertImage(userId uuid.UUID, imageId int64, imagePath string
 	}
 
 	return id, nil
+}
+
+//func (p PgStorage) IsAdmin(userId uuid.UUID) (bool, error) {
+//
+//}
+
+func (p PgStorage) GetAllImagesWithUserInfo() ([]*models.ImageWithUser, error) {
+	const fn = "storage.GetAllImagesWithUserInfo"
+
+	stmt := `SELECT path, login, is_admin FROM users JOIN images ON images.creator_id = users.id`
+	ctx, cancel := context.WithTimeout(context.Background(), p.timeout)
+	defer cancel()
+	rows, err := p.Conn.Query(ctx, stmt)
+	if err != nil {
+		return nil, fmt.Errorf("%s: error quering data from db: %v", fn, err)
+	}
+	defer rows.Close()
+
+	var images []*models.ImageWithUser
+
+	for rows.Next() {
+		var image models.ImageWithUser
+
+		if err := rows.Scan(&image.ImagePath, &image.Login, &image.IsAdmin); err != nil {
+			return nil, fmt.Errorf("%s: error getting next row %v", fn, err)
+		}
+		images = append(images, &image)
+	}
+	return images, nil
 }
