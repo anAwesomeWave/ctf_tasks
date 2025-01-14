@@ -1,72 +1,215 @@
+/*!* Основные стили *!*/
+/*body {*/
+/*    margin: 0;*/
+/*    padding: 0;*/
+/*    font-family: 'Arial', sans-serif;*/
+/*    background-color: #fafafa;*/
+/*    color: #333;*/
+/*}*/
+
+/*!* Шапка сайта *!*/
+/*header {*/
+/*    background-color: #fff;*/
+/*    border-bottom: 1px solid #ddd;*/
+/*    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);*/
+/*    position: sticky;*/
+/*    top: 0;*/
+/*    z-index: 1000;*/
+/*}*/
+
+/*header nav {*/
+/*    display: flex;*/
+/*    justify-content: space-between;*/
+/*    align-items: center;*/
+/*    max-width: 1200px;*/
+/*    margin: 0 auto;*/
+/*    padding: 10px 20px;*/
+/*}*/
+
+/*header nav ul {*/
+/*    list-style: none;*/
+/*    margin: 0;*/
+/*    padding: 0;*/
+/*    display: flex;*/
+/*    align-items: center;*/
+/*}*/
+
+/*header nav ul a {*/
+/*    text-decoration: none;*/
+/*    color: #e60023;*/
+/*    font-size: 1.2rem;*/
+/*    font-weight: bold;*/
+/*    margin-right: 20px;*/
+/*    transition: color 0.3s ease;*/
+/*}*/
+
+/*header nav ul a:hover {*/
+/*    color: #ff4d4d;*/
+/*}*/
+
+/*!* Ссылки для зарегистрированных пользователей *!*/
+/*header nav a {*/
+/*    text-decoration: none;*/
+/*    color: #333;*/
+/*    font-size: 1rem;*/
+/*    margin: 0 10px;*/
+/*    padding: 5px 10px;*/
+/*    border-radius: 5px;*/
+/*    transition: background-color 0.3s ease, color 0.3s ease;*/
+/*}*/
+
+/*header nav a:hover {*/
+/*    background-color: #e60023;*/
+/*    color: #fff;*/
+/*}*/
+
+/*!* Контент *!*/
+/*main {*/
+/*    max-width: 1200px;*/
+/*    margin: 20px auto;*/
+/*    padding: 20px;*/
+/*    background-color: #fff;*/
+/*    border-radius: 10px;*/
+/*    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);*/
+/*}*/
+
+/*!* Заголовки *!*/
+/*h1, h2 {*/
+/*    color: #333;*/
+/*    text-align: center;*/
+/*    margin-bottom: 20px;*/
+/*}*/
+
+/*!* Кнопки *!*/
+/*button {*/
+/*    background-color: #e60023;*/
+/*    color: #fff;*/
+/*    border: none;*/
+/*    padding: 10px 20px;*/
+/*    border-radius: 5px;*/
+/*    font-size: 1rem;*/
+/*    cursor: pointer;*/
+/*    transition: background-color 0.3s ease;*/
+/*}*/
+
+/*button:hover {*/
+/*    background-color: #cc001f;*/
+/*}*/
+
+/*!* Аватар и изображения *!*/
+/*img {*/
+/*    max-width: 100%;*/
+/*    height: auto;*/
+/*    display: block;*/
+/*    margin: 10px 0;*/
+/*    border-radius: 10px;*/
+/*    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);*/
+/*}*/
+
+/*!* Список *!*/
+/*ul {*/
+/*    list-style: none;*/
+/*    margin: 0;*/
+/*    padding: 0;*/
+/*    display: flex;*/
+/*    flex-wrap: wrap;*/
+/*    gap: 15px;*/
+/*}*/
+
+/*ul li {*/
+/*    flex: 1 1 calc(33.333% - 15px);*/
+/*    display: flex;*/
+/*    justify-content: center;*/
+/*}*/
+
+/*!* Мобильная адаптация *!*/
+/*@media (max-width: 768px) {*/
+/*    header nav {*/
+/*        flex-direction: column;*/
+/*        align-items: flex-start;*/
+/*    }*/
+
+/*    ul li {*/
+/*        flex: 1 1 100%;*/
+/*    }*/
+/*}*/
+
+
+
+/* Общие стили для всего сайта */
 body {
-    font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
 }
 
-nav {
-    display: flex; /* Use flexbox for the nav bar */
-    justify-content: space-between; /* Space between brand and links */
-    align-items: center; /* Vertically center items */
-    background-color: #4A90E2; /* Soft blue color */
-    color: white;
-    padding: 15px 30px; /* Increased padding for a nicer appearance */
+header {
+    background-color: #fff;
+    border-bottom: 1px solid #ddd;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
 }
 
-nav ul {
-    list-style-type: none; /* Remove bullet points */
+header nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 10px 20px;
+}
+
+header nav ul {
+    list-style: none;
     margin: 0;
     padding: 0;
-    display: flex; /* Ensure the list items are in a row */
+    display: flex;
+    align-items: center;
 }
 
-nav ul li {
-    margin-right: 30px; /* Increased spacing between items */
-}
-
-nav ul li:last-child {
-    margin-right: 0; /* Remove margin from the last item */
-}
-
-nav ul li a {
-    color: white;
-    text-decoration: none; /* Remove underline */
-    padding: 8px 15px; /* Add padding around the links */
-    border-radius: 5px; /* Rounded corners */
-    transition: background-color 0.3s, transform 0.2s; /* Smooth transition for hover effect */
-}
-
-nav ul li a:hover {
-    background-color: #357ABD; /* Darker blue on hover */
-    transform: scale(1.05); /* Slightly enlarge the link on hover */
-}
-
-nav .brand {
-    font-size: 24px; /* Larger font for brand */
-    font-weight: bold;
-}
-
-
-.inline {
-    display: inline;
-}
-
-/*.btn-link{*/
-/*    border:none;*/
-/*    outline:none;*/
-/*    background:none;*/
-/*    cursor:pointer;*/
-/*    color:#0000EE;*/
-/*    padding:0;*/
-/*    text-decoration:underline;*/
-/*    font-family:inherit;*/
-/*    font-size:inherit;*/
-/*}*/
-/*.btn-link:active{*/
-/*    color:#FF0000;*/
-/*}*/
-
-header a {
-    color: white;
+header nav ul a {
     text-decoration: none;
+    color: #e60023;
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-right: 20px;
+    transition: color 0.3s ease;
+}
+
+header nav ul a:hover {
+    color: #ff4d4d;
+}
+
+button {
+    background-color: #e60023;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #cc001f;
+}
+
+h1 {
+    text-align: center;
+    color: #333;
+    margin: 20px 0;
+}
+
+a {
+    text-decoration: none;
+    color: #333;
+}
+
+a:hover {
+    color: #e60023;
 }

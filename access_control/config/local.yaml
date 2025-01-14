@@ -5,4 +5,5 @@ httpServer:
   address: "0.0.0.0:8081"
 images:
   basePath: "./static/users/upload/"
-  avatarsPath: "./static/users/avatars/"
+  avatarsPath: "./static/users/upload/avatars/"
+#  defaultAdminImageURL: "/static/users/upload/default/admin.jpg"

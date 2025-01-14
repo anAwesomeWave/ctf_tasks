@@ -20,7 +20,7 @@ func main() {
 	cfg := config.Load("./config/local.yaml")
 
 	fmt.Println(*cfg)
-	pgStrg, err := storage.NewPgStorage(cfg.StorageCfg, time.Millisecond*500)
+	pgStrg, err := storage.NewPgStorage(cfg.StorageCfg, time.Second*1)
 
 	if err != nil {
 		log.Fatal(err)

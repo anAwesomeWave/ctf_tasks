@@ -48,20 +48,21 @@ func GetIndexPage(strg storage.Storage) http.HandlerFunc {
 	}
 }
 
-func GetUploadPage(w http.ResponseWriter, r *http.Request) {
-	_, isLogined := midauth.UserFromContext(r.Context())
-	t, err := template.ParseFiles("./templates/common/base.html", "./templates/images/upload.html")
-	if err != nil {
-		log.Println(err)
-		return
-	}
+func GetUploadPage(urlParam, filetype string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		_, isLogined := midauth.UserFromContext(r.Context())
+		t, err := template.ParseFiles("./templates/common/base.html", "./templates/images/upload.html")
+		if err != nil {
+			log.Println(err)
+			return
+		}
 
-	if err := t.Execute(w, map[string]interface{}{"isLogined": isLogined}); err != nil {
-		log.Println(err)
-		return
+		if err := t.Execute(w, map[string]interface{}{"isLogined": isLogined, "urlParam": urlParam, "filetype": filetype}); err != nil {
+			log.Println(err)
+			return
+		}
 	}
 }
-
 func PostUploadImage(imageApp app.App, strg storage.Storage) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		/*

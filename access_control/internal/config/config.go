@@ -29,6 +29,7 @@ type Storage struct {
 type Images struct {
 	Path        string `yaml:"basePath" env:"IMAGES_BASE_PATH" env-default:"./static/users/upload/"`
 	AvatarsPath string `yaml:"avatarsPath" env:"AVATARS_BASE_PATH" env-default:"./static/users/avatars/"`
+	//DefaultAdminImageURL string `yaml:"defaultAdminImageURL" env:"DEFAULT_ADMIN_IMAGE_URL" env-default:"/static/users/upload/default/admin.jpg"`
 }
 
 func Load(configPath string) *AppConfig {

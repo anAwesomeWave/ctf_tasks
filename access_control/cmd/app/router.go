@@ -4,7 +4,9 @@ import (
 	"accessCtf/internal/app"
 	"accessCtf/internal/http/common"
 	"accessCtf/internal/http/handlers/auth"
+	"accessCtf/internal/http/handlers/avatars"
 	"accessCtf/internal/http/handlers/images"
+	"accessCtf/internal/http/handlers/users"
 	midauth "accessCtf/internal/http/middleware/auth"
 	"accessCtf/internal/storage"
 	"github.com/go-chi/chi/v5"
@@ -21,6 +23,7 @@ func setUpRouter(imagesApp app.App, strg storage.Storage) *chi.Mux {
 	router.Use(middleware.URLFormat) // удобно брать из урлов данные
 	router.Use(middleware.StripSlashes)
 
+	router.Handle("/static/server/*", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 	router.Get("/users/logout", auth.Logout) // unprotected
 	router.Group(func(authR chi.Router) {
 		authR.Use(jwtauth.Verifier(auth.TokenAuth))
@@ -29,10 +32,6 @@ func setUpRouter(imagesApp app.App, strg storage.Storage) *chi.Mux {
 		authR.NotFound(func(w http.ResponseWriter, r *http.Request) {
 			common.ServeError(w, http.StatusNotFound, "Not Found", false)
 		})
-
-		authR.Handle("/static/server/*", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
-
-		authR.Get("/static/avatars/{userId}/{imageId}", images.GetImage(imagesApp))
 
 		authR.Get("/", images.GetIndexPage(strg))
 
@@ -45,9 +44,22 @@ func setUpRouter(imagesApp app.App, strg storage.Storage) *chi.Mux {
 			r.Get("/{userId}/{imageId}", images.GetImage(imagesApp))
 			r.Route("/upload", func(subR chi.Router) {
 				subR.Use(midauth.CustomAuthenticator(auth.TokenAuth))
-				subR.Get("/", images.GetUploadPage)
+				subR.Get("/", images.GetUploadPage("images", "Image"))
 				subR.Post("/", images.PostUploadImage(imagesApp, strg))
 			})
+		})
+		// ./static/users/upload/avatars/14c37ec6-08bd-421e-8bb1-1eb474cd8675/1.jpeg
+		authR.Route("/static/avatars", func(r chi.Router) {
+			r.Get("/{userId}/{avatarId}", avatars.GetAvatar(imagesApp))
+			r.Route("/upload", func(subR chi.Router) {
+				subR.Use(midauth.CustomAuthenticator(auth.TokenAuth))
+				subR.Get("/", images.GetUploadPage("avatars", "Avatar"))
+				subR.Post("/", avatars.PostUploadAvatar(imagesApp, strg))
+			})
+		})
+		authR.Group(func(usersR chi.Router) {
+			usersR.Use(midauth.CustomAuthenticator(auth.TokenAuth))
+			authR.Get("/users/me", users.GetMePage(strg))
 		})
 	})
 	return router

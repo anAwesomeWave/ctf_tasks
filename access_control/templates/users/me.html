@@ -1,0 +1,38 @@
+{{define "title"}}{{.user.Login}}{{end}}
+
+{{define "head"}}
+<link rel="stylesheet" href="/static/server/css/users_me.css">
+{{end}}
+
+{{define "content"}}
+<div class="user-profile">
+    {{if .isAvatarExist}}
+    <img src="{{.avatarsPath}}" alt="User Avatar" class="user-avatar">
+    {{else}}
+    <p>Upload an Avatar!</p>
+    {{end}}
+    <h1 class="user-login">{{.user.Login}}'s Page</h1>
+    <form action="/users/me/edit" method="post" enctype="multipart/form-data" class="edit-form">
+        <label for="login">Update Login:</label>
+        <input type="text" id="login" name="login" placeholder="Enter new login" value="{{.user.Login}}" required>
+
+        <label for="avatar">Update Avatar:</label>
+        <input type="file" id="avatar" name="avatar" accept="image/*">
+
+        <button type="submit" class="save-button">Save Changes</button>
+    </form>
+</div>
+
+<h2>All Your Images</h2>
+<div class="image-grid">
+    {{if eq (len .images) 0}}
+        <h3>No images found :(</h3>
+    {{else}}
+        {{range .images}}
+        <div class="image-card">
+            <img src="{{.Path}}?is_public=true" alt="User Image" class="main-image">
+        </div>
+        {{end}}
+    {{end}}
+</div>
+{{end}}

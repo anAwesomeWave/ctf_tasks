@@ -1,15 +1,28 @@
+{{define "head"}}
+<link rel="stylesheet" href="/static/server/css/index.css">
+{{end}}
+
+
+
 {{define "content"}}
 <h1> Welcome to Pwnterest! World's largest collection of images!</h1>
 
-<h2> All images: </h2>
+<h1> All images: </h1>
 <ul>
     {{if eq (len .images) 0 }}
-    <h3> No images found :( </h3>
+        <h3> No images found :( </h3>
     {{else}}
-    {{range .images}}
-    <li>Name: {{.Login}}<img src="{{.ImagePath}}?is_public=true" alt="something went wrong" height="500"></li>
-    {{end}}
-    {{end}}
+    <div class="image-grid">
+        {{range .images}}
+            <div class="image-card">
+                <div class="author-info">
+                    <span class="author-login">{{.Login}}</span>
+                </div>
+                <img src="{{.ImagePath}}?is_public=true" alt="Image" class="main-image">
+            </div>
+            {{end}}
+        {{end}}
+    </div>
 </ul>
 
 {{end}}

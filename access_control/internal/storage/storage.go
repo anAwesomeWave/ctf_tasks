@@ -23,6 +23,8 @@ var (
 	ErrExists   = errors.New("not Unique")
 )
 
+type AvatarPath = string
+
 type Storage interface {
 	CreateUser(login, password string) (*uuid.UUID, error)
 	GetUser(login, password string) (*models.Users, error)
@@ -31,6 +33,10 @@ type Storage interface {
 	InsertImage(userId uuid.UUID, imageId int64, imagePath string) (int64, error)
 	//IsAdmin(userId uuid.UUID) (bool, error)
 	GetAllImagesWithUserInfo() ([]*models.ImageWithUser, error)
+	GetAllUserImages(userId uuid.UUID) ([]*models.Images, error)
+	GetMaxUserAvatarId(userId uuid.UUID) (int64, error)
+	InsertAvatar(userId uuid.UUID, avatarId int64, avatarPath string) (int64, error)
+	GetLastUploadAvatar(userId uuid.UUID) (AvatarPath, error)
 	//GetUserByLoginPassword(login, password string) (*models.Users, error)
 	//CreateImage(creator *models.Users, path string) (*models.Images, error)
 	//CreateAvatar(creator *models.Users, path string) (*models.Avatars, error)
@@ -216,4 +222,101 @@ func (p PgStorage) GetAllImagesWithUserInfo() ([]*models.ImageWithUser, error) {
 		images = append(images, &image)
 	}
 	return images, nil
+}
+
+func (p PgStorage) GetAllUserImages(userId uuid.UUID) ([]*models.Images, error) {
+	const fn = "storage.GetAllUserImages"
+
+	stmt := `SELECT id, path, path_id FROM images WHERE creator_id = $1 ORDER BY creation_time DESC`
+
+	binary, err := userId.MarshalBinary()
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", fn, err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), p.timeout)
+	defer cancel()
+	rows, err := p.Conn.Query(ctx, stmt, binary)
+	if err != nil {
+		return nil, fmt.Errorf("%s: error quering data from db: %v", fn, err)
+	}
+	defer rows.Close()
+
+	var images []*models.Images
+
+	for rows.Next() {
+		var image models.Images
+		if err := rows.Scan(&image.Id, &image.Path, &image.PathId); err != nil {
+			return nil, fmt.Errorf("%s: error getting next row %v", fn, err)
+		}
+		images = append(images, &image)
+	}
+	return images, nil
+}
+
+func (p PgStorage) GetMaxUserAvatarId(userId uuid.UUID) (int64, error) {
+	const fn = "storage.GetMaxUserAvatarId"
+	var avatarId int64
+	stmt := `SELECT coalesce(MAX(path_id), 0) FROM avatars WHERE avatars.owner_id  = $1`
+	ctx, cancel := context.WithTimeout(context.Background(), p.timeout)
+	defer cancel()
+	binary, err := userId.MarshalBinary()
+	if err != nil {
+		return 0, fmt.Errorf("%s: %w", fn, err)
+	}
+	if err := p.Conn.QueryRow(ctx, stmt, binary).Scan(&avatarId); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return 0, fmt.Errorf("%s: No avatars found for user with id {%s}: %w", fn, userId.String(), ErrNotFound)
+		}
+		return 0, fmt.Errorf("%s: %w", fn, err)
+	}
+	return avatarId, nil
+}
+
+func (p PgStorage) GetLastUploadAvatar(userId uuid.UUID) (AvatarPath, error) {
+	const fn = "storage.GetLastUploadAvatar"
+	stmt := `SELECT path FROM users JOIN avatars ON avatars.owner_id = $1 ORDER BY creation_time DESC LIMIT 1`
+
+	binary, err := userId.MarshalBinary()
+	if err != nil {
+		return "", fmt.Errorf("%s: %w", fn, err)
+	}
+	var path AvatarPath
+	ctx, cancel := context.WithTimeout(context.Background(), p.timeout)
+	defer cancel()
+	if err := p.Conn.QueryRow(ctx, stmt, binary).Scan(&path); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", fmt.Errorf("%s: No avatars found for user with id {%s}: %w", fn, userId.String(), ErrNotFound)
+		}
+		return "", fmt.Errorf("%s: %w", fn, err)
+	}
+	return path, nil
+}
+
+func (p PgStorage) InsertAvatar(userId uuid.UUID, avatarId int64, avatarPath string) (int64, error) {
+	const fn = "storage.InsertAvatar"
+
+	var id int64
+
+	binary, err := userId.MarshalBinary()
+	if err != nil {
+		return 0, fmt.Errorf("%s: %w", fn, err)
+	}
+
+	stmt := `INSERT INTO avatars(path, path_id, owner_id) VALUES($1, $2, $3) RETURNING id`
+	ctx, cancel := context.WithTimeout(context.Background(), p.timeout)
+	defer cancel()
+
+	if err := p.Conn.QueryRow(ctx, stmt, avatarPath, avatarId, binary).Scan(&id); err != nil {
+		var pgError *pgconn.PgError
+		if errors.As(err, &pgError) {
+			if pgError.Code == pgerrcode.UniqueViolation {
+				log.Println(fn, pgError)
+				return 0, fmt.Errorf("%s: avatar is not unique %d, %s: %w", fn, avatarId, avatarPath, ErrExists)
+			}
+		}
+		return 0, fmt.Errorf("%s: %w", fn, err)
+	}
+
+	return id, nil
 }

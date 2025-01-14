@@ -1,9 +1,9 @@
-{{define "title"}}Upload Your Image!{{end}}
+{{define "title"}}Upload Your {{.filetype}}!{{end}}
 {{define "content"}}
-<h1> Upload new Image! </h1>
+<h1> Upload new {{.filetype}}! </h1>
 <form
         enctype="multipart/form-data"
-        action="/static/images/upload"
+        action="/static/{{.urlParam}}/upload"
         method="post"
 >
     <input type="file" name="myFile" />
