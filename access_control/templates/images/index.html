@@ -16,6 +16,7 @@
         {{range .images}}
             <div class="image-card">
                 <div class="author-info">
+                    <img src="{{.AvatarPath}}" alt="Author Avatar" class="avatar">
                     <span class="author-login">{{.Login}}</span>
                 </div>
                 <img src="{{.ImagePath}}?is_public=true" alt="Image" class="main-image">

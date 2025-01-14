@@ -196,14 +196,10 @@ func (p PgStorage) InsertImage(userId uuid.UUID, imageId int64, imagePath string
 	return id, nil
 }
 
-//func (p PgStorage) IsAdmin(userId uuid.UUID) (bool, error) {
-//
-//}
-
 func (p PgStorage) GetAllImagesWithUserInfo() ([]*models.ImageWithUser, error) {
 	const fn = "storage.GetAllImagesWithUserInfo"
 
-	stmt := `SELECT path, login, is_admin FROM users JOIN images ON images.creator_id = users.id ORDER BY creation_time DESC`
+	stmt := `SELECT images.path, login, is_admin, avatars.path FROM users JOIN images ON images.creator_id = users.id LEFT OUTER JOIN avatars ON users.id = avatars.owner_id ORDER BY images.creation_time DESC`
 	ctx, cancel := context.WithTimeout(context.Background(), p.timeout)
 	defer cancel()
 	rows, err := p.Conn.Query(ctx, stmt)
@@ -216,9 +212,12 @@ func (p PgStorage) GetAllImagesWithUserInfo() ([]*models.ImageWithUser, error) {
 
 	for rows.Next() {
 		var image models.ImageWithUser
-
-		if err := rows.Scan(&image.ImagePath, &image.Login, &image.IsAdmin); err != nil {
+		var nullStr sql.NullString
+		if err := rows.Scan(&image.ImagePath, &image.Login, &image.IsAdmin, &nullStr); err != nil {
 			return nil, fmt.Errorf("%s: error getting next row %v", fn, err)
+		}
+		if nullStr.Valid {
+			image.AvatarPath = nullStr.String
 		}
 		images = append(images, &image)
 	}

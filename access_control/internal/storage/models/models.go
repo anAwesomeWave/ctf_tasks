@@ -29,7 +29,8 @@ type Avatars struct {
 }
 
 type ImageWithUser struct {
-	ImagePath string
-	Login     string
-	IsAdmin   bool
+	ImagePath  string
+	AvatarPath string
+	Login      string
+	IsAdmin    bool
 }

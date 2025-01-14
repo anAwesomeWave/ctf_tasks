@@ -25,7 +25,6 @@ func GetIndexPage(strg storage.Storage) http.HandlerFunc {
 			return
 		}
 		for ind := range images {
-			log.Println(images[ind].ImagePath)
 			after, found := strings.CutPrefix(images[ind].ImagePath, "./static/users/upload/")
 			if !found {
 				log.Println("ERROR. STRANGE STRING PATTERN:", images[ind].ImagePath)
@@ -33,7 +32,15 @@ func GetIndexPage(strg storage.Storage) http.HandlerFunc {
 			}
 			images[ind].ImagePath = "/static/images/" + after
 			if images[ind].IsAdmin && !(isLogined && user.IsAdmin) {
-				images[ind].ImagePath = "/static/images/default/1.jpeg" // TODO: Refactor. part of a config?
+				images[ind].ImagePath = "/static/images/default/1.jpeg"
+			}
+			if images[ind].AvatarPath != "" {
+				afterAvatar, found := strings.CutPrefix(images[ind].AvatarPath, "./static/users/upload/")
+				if !found {
+					log.Println("ERROR. STRANGE STRING PATTERN:", images[ind].AvatarPath)
+					common.ServeError(w, http.StatusInternalServerError, "Internal server error", isLogined)
+				}
+				images[ind].AvatarPath = "/static/" + afterAvatar
 			}
 		}
 		t, err := template.ParseFiles("./templates/common/base.html", "./templates/images/index.html")
