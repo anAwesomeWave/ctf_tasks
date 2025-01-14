@@ -48,7 +48,6 @@ func setUpRouter(imagesApp app.App, strg storage.Storage) *chi.Mux {
 				subR.Post("/", images.PostUploadImage(imagesApp, strg))
 			})
 		})
-		// ./static/users/upload/avatars/14c37ec6-08bd-421e-8bb1-1eb474cd8675/1.jpeg
 		authR.Route("/static/avatars", func(r chi.Router) {
 			r.Get("/{userId}/{avatarId}", avatars.GetAvatar(imagesApp))
 			r.Route("/upload", func(subR chi.Router) {
@@ -60,6 +59,7 @@ func setUpRouter(imagesApp app.App, strg storage.Storage) *chi.Mux {
 		authR.Group(func(usersR chi.Router) {
 			usersR.Use(midauth.CustomAuthenticator(auth.TokenAuth))
 			authR.Get("/users/me", users.GetMePage(strg))
+			authR.Post("/users/me/edit", users.PostUpdateAccount(imagesApp, strg))
 		})
 	})
 	return router

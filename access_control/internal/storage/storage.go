@@ -30,13 +30,14 @@ type Storage interface {
 	GetUser(login, password string) (*models.Users, error)
 	GetUserById(id uuid.UUID) (*models.Users, error)
 	GetMaxUserImageId(userId uuid.UUID) (int64, error)
+	UpdateUserLogin(userId uuid.UUID, newLogin string) error
 	InsertImage(userId uuid.UUID, imageId int64, imagePath string) (int64, error)
-	//IsAdmin(userId uuid.UUID) (bool, error)
 	GetAllImagesWithUserInfo() ([]*models.ImageWithUser, error)
 	GetAllUserImages(userId uuid.UUID) ([]*models.Images, error)
 	GetMaxUserAvatarId(userId uuid.UUID) (int64, error)
 	InsertAvatar(userId uuid.UUID, avatarId int64, avatarPath string) (int64, error)
 	GetLastUploadAvatar(userId uuid.UUID) (AvatarPath, error)
+	//IsAdmin(userId uuid.UUID) (bool, error)
 	//GetUserByLoginPassword(login, password string) (*models.Users, error)
 	//CreateImage(creator *models.Users, path string) (*models.Images, error)
 	//CreateAvatar(creator *models.Users, path string) (*models.Avatars, error)
@@ -319,4 +320,25 @@ func (p PgStorage) InsertAvatar(userId uuid.UUID, avatarId int64, avatarPath str
 	}
 
 	return id, nil
+}
+
+func (p PgStorage) UpdateUserLogin(userId uuid.UUID, newLogin string) error {
+	const fn = "storage.UpdateUserLogin"
+
+	binary, err := userId.MarshalBinary()
+	if err != nil {
+		return fmt.Errorf("%s: %w", fn, err)
+	}
+
+	stmt := `UPDATE users SET login = $1 WHERE id = $2`
+	ctx, cancel := context.WithTimeout(context.Background(), p.timeout)
+	defer cancel()
+	if _, err := p.Conn.Exec(ctx, stmt, newLogin, binary); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return fmt.Errorf("%s: User not found : %w", fn, ErrNotFound)
+		}
+		return fmt.Errorf("%s: %w", fn, err)
+	}
+
+	return nil
 }

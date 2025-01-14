@@ -1,6 +1,7 @@
 package users
 
 import (
+	"accessCtf/internal/app"
 	"accessCtf/internal/http/common"
 	midauth "accessCtf/internal/http/middleware/auth"
 	"accessCtf/internal/storage"
@@ -66,5 +67,83 @@ func GetMePage(strg storage.Storage) http.HandlerFunc {
 			log.Println(err)
 			return
 		}
+	}
+}
+
+func PostUpdateAccount(imageApp app.App, strg storage.Storage) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		user, ok := midauth.UserFromContext(r.Context())
+		if !ok || user == nil {
+			common.ServeError(w, 401, "Unauthorized!", false)
+			return
+		}
+		maxAvatarIdorUser, err := strg.GetMaxUserAvatarId(user.Id)
+		if err != nil {
+			if errors.Is(err, storage.ErrNotFound) {
+				maxAvatarIdorUser = 0
+			} else {
+				log.Println(err)
+				common.ServeError(w, 500, "Internal error", user != nil)
+				return
+			}
+		}
+		if err := r.ParseMultipartForm(10 << 20); err != nil {
+			http.Error(w, "File too large", http.StatusBadRequest)
+			return
+		}
+
+		file, _, err := r.FormFile("avatar")
+		if err != nil {
+			if !errors.Is(err, http.ErrMissingFile) {
+				log.Println("Error Retrieving the File")
+				common.ServeError(
+					w,
+					http.StatusInternalServerError,
+					"Error updating profile.",
+					false,
+				)
+				return
+			}
+		} else {
+			defer func() { _ = file.Close() }()
+			path, err := imageApp.SaveImage(file, user.Id.String(), maxAvatarIdorUser+1, app.Avatar)
+			if err != nil {
+				log.Println(err)
+				common.ServeError(
+					w,
+					http.StatusInternalServerError,
+					"Error updating profile.",
+					false,
+				)
+				return
+			}
+
+			// store to db
+			_, err = strg.InsertAvatar(user.Id, maxAvatarIdorUser+1, path)
+			if err != nil {
+				log.Println(err)
+				common.ServeError(
+					w,
+					http.StatusInternalServerError,
+					"Error updating profile.",
+					false,
+				)
+				return
+			}
+		}
+		newLogin := r.FormValue("login")
+		if newLogin != "" {
+			err := strg.UpdateUserLogin(user.Id, newLogin)
+			if err != nil {
+				log.Println(err)
+				common.ServeError(
+					w,
+					http.StatusInternalServerError,
+					"Error updating profile.",
+					false,
+				)
+			}
+		}
+		http.Redirect(w, r, "/users/me", http.StatusSeeOther)
 	}
 }
