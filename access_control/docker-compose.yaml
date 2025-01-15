@@ -4,6 +4,18 @@ volumes:
   pg_data:
 
 services:
+  app:
+    image: my_app   # нужно для тестов, мы собираем образ на стадии test-build. и используем его сейчас
+    build: # makefile для продакшн сборки всегда пересоберет образ, так что это можно удалить
+      dockerfile: Dockerfile_App
+    environment:
+#      ENTRYPOINT_COMMAND: "server"
+      DB_PATH: "db:5432"
+    ports:
+      - "8080:8081"
+    depends_on:
+      db:
+        condition: service_healthy  # без этого контейнеры будут "стучаться" в бд до ее полноценного запуска
   db:
     image: postgres:13.10
     env_file: config/.storage_env

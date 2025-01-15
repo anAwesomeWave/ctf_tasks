@@ -7,13 +7,18 @@ import (
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/joho/godotenv"
-	"github.com/pressly/goose"
+	"github.com/pressly/goose/v3"
 	"log"
 	"os"
 	"time"
 )
 
+import (
+	_ "accessCtf/migrations"
+)
+
 func main() {
+
 	migrationsDirPath := flag.String("mgPath", "./migrations/", "path to folder with goose migratons")
 	storagePath := flag.String("dbPath", "localhost:54321", "path to database")
 	configEnvPath := flag.String(
@@ -36,7 +41,6 @@ func main() {
 		false,
 		"downgrade ALL MIGRATIONS. Shortcut for \"-down-to 0\" Default: false.",
 	)
-
 	flag.Parse()
 
 	fi, err := os.Stat(*migrationsDirPath)
@@ -65,6 +69,10 @@ func main() {
 		log.Fatalf("MIGRATOR: Error connecting to database: %v", err)
 	}
 	db := stdlib.OpenDBFromPool(pool.Conn)
+
+	if err := godotenv.Load("./config/.app_env"); err != nil {
+		log.Fatalf("Error with loading AppEnv file: %v", err)
+	}
 
 	if *isUp {
 		if err := goose.Up(db, *migrationsDirPath); err != nil {

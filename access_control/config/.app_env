@@ -1,1 +1,3 @@
 CFG_PATH=./config/local.yaml
+ADMIN_LOGIN=tim
+ADMIN_PASSWORD=123
