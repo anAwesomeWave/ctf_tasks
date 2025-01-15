@@ -8,7 +8,9 @@ import (
 	"github.com/anAwesomeWave/text2img"
 	"github.com/google/uuid"
 	"github.com/pressly/goose/v3"
+	"image/color"
 	"image/jpeg"
+	"io"
 	"os"
 )
 
@@ -19,7 +21,10 @@ func init() {
 func createImage(dir, text string) (string, error) {
 	path := "./static/assets/font.ttf"
 	d, err := text2img.NewDrawer(text2img.Params{
-		FontPath: path,
+		BackgroundColor: color.RGBA{R: 244, G: 235, B: 218, A: 255},
+		TextColor:       color.RGBA{R: 51, G: 51, B: 51, A: 255},
+		Width:           1400,
+		FontPath:        path,
 	})
 	if err != nil {
 		return "", err
@@ -45,6 +50,37 @@ func createImage(dir, text string) (string, error) {
 	}
 	return dir + "/1.jpeg", nil
 }
+
+func copyFile(src, dst string) error {
+	// Open the source file
+	sourceFile, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer sourceFile.Close()
+
+	// Create the destination file
+	destFile, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer destFile.Close()
+
+	// Copy the contents from source to destination
+	_, err = io.Copy(destFile, sourceFile)
+	if err != nil {
+		return err
+	}
+
+	// Flush the file contents to disk
+	err = destFile.Sync()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func upCreateAdmin(ctx context.Context, tx *sql.Tx) error {
 	// This code is executed when the migration is applied.
 	adminLogin := os.Getenv("ADMIN_LOGIN")
@@ -89,6 +125,21 @@ func upCreateAdmin(ctx context.Context, tx *sql.Tx) error {
 	var imageId int64
 	stmt := `INSERT INTO images(path, path_id, creator_id) VALUES($1, $2, $3) RETURNING id`
 	if err := tx.QueryRow(stmt, createdImagePath, 1, binary).Scan(&imageId); err != nil {
+		return err
+	}
+	adminAvatarPath := "./static/users/upload/avatars/" + adminId.String()
+	if err := os.Mkdir(adminAvatarPath, 0744); err != nil {
+		return err
+	}
+	// avatar
+	// проверить есть ли папка
+	adminAvatarPath += "/1.jpeg"
+	if err := copyFile("./static/assets/admin/avatar.jpeg", adminAvatarPath); err != nil {
+		return err
+	}
+
+	stmt = `INSERT INTO avatars(path, path_id, owner_id) VALUES($1, $2, $3)`
+	if _, err := tx.Exec(stmt, adminAvatarPath, 1, binary); err != nil {
 		return err
 	}
 	return nil
