@@ -49,7 +49,7 @@ type PgStorage struct {
 }
 
 func NewPgStorage(storage config.Storage, timeout time.Duration) (*PgStorage, error) {
-	const fn = "storage.New"
+	const fn = "storage.NewPgStorage"
 	connString := fmt.Sprintf(
 		"postgres://%s:%s@%s/%s?sslmode=disable",
 		storage.User,

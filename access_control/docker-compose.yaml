@@ -28,3 +28,11 @@ services:
       interval: 10s
       timeout: 60s
       retries: 5
+  migrate:
+    build:
+      dockerfile: Dockerfile_migrator
+    environment:
+      DB_PATH: "db:5432"
+    depends_on:
+      db:
+        condition: service_healthy

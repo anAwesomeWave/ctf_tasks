@@ -1,3 +1,4 @@
 CFG_PATH=./config/local.yaml
 ADMIN_LOGIN=tim
 ADMIN_PASSWORD=123
+CTF_FLAG=practice{its_pwnterest_not_a_pinterest}

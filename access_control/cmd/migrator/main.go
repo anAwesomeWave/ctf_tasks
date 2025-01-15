@@ -18,9 +18,7 @@ import (
 )
 
 func main() {
-
 	migrationsDirPath := flag.String("mgPath", "./migrations/", "path to folder with goose migratons")
-	storagePath := flag.String("dbPath", "localhost:54321", "path to database")
 	configEnvPath := flag.String(
 		"envPath",
 		"./config/.storage_env",
@@ -49,9 +47,6 @@ func main() {
 	}
 	if !fi.IsDir() {
 		log.Fatalf("Path %s not point to directory", *migrationsDirPath)
-	}
-	if err := os.Setenv("DB_PATH", *storagePath); err != nil {
-		log.Fatalf("Error with setting DB_PATH env. variable: %v", err)
 	}
 	if _, err := os.Stat(*configEnvPath); err != nil {
 		log.Fatalf("Error opening config env file: %v", err)
