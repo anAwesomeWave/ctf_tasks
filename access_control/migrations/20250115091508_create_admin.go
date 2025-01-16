@@ -1,16 +1,14 @@
 package migrations
 
 import (
-	"accessCtf/internal/util"
+	"accessCtf/migrations/migutil"
 	"context"
 	"database/sql"
 	"fmt"
 	"github.com/anAwesomeWave/text2img"
-	"github.com/google/uuid"
 	"github.com/pressly/goose/v3"
 	"image/color"
 	"image/jpeg"
-	"io"
 	"os"
 )
 
@@ -51,36 +49,6 @@ func createImage(dir, text string) (string, error) {
 	return dir + "/1.jpeg", nil
 }
 
-func copyFile(src, dst string) error {
-	// Open the source file
-	sourceFile, err := os.Open(src)
-	if err != nil {
-		return err
-	}
-	defer sourceFile.Close()
-
-	// Create the destination file
-	destFile, err := os.Create(dst)
-	if err != nil {
-		return err
-	}
-	defer destFile.Close()
-
-	// Copy the contents from source to destination
-	_, err = io.Copy(destFile, sourceFile)
-	if err != nil {
-		return err
-	}
-
-	// Flush the file contents to disk
-	err = destFile.Sync()
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func upCreateAdmin(ctx context.Context, tx *sql.Tx) error {
 	// This code is executed when the migration is applied.
 	adminLogin := os.Getenv("ADMIN_LOGIN")
@@ -88,20 +56,8 @@ func upCreateAdmin(ctx context.Context, tx *sql.Tx) error {
 	if adminLogin == "" || adminPassword == "" {
 		return fmt.Errorf("environment variables ADMIN_LOGIN or ADMIN_PASSWORD are not set")
 	}
-	pHash, err := util.GetHashPassword(adminPassword)
+	adminId, err := migutil.CreateUser(tx, adminLogin, adminPassword, true)
 	if err != nil {
-		return err
-	}
-
-	// return id and create avatar with image
-	// create assets folder and fill users images with it
-	var adminId uuid.UUID
-	if err := tx.QueryRow(
-		`INSERT INTO users(login, password_hash, is_admin) VALUES($1, $2, $3) RETURNING id`,
-		adminLogin,
-		pHash,
-		true,
-	).Scan(&adminId); err != nil {
 		return err
 	}
 	// 2. сгенерировать картинку и положить ее в нужную папку
@@ -127,25 +83,11 @@ func upCreateAdmin(ctx context.Context, tx *sql.Tx) error {
 	if err := tx.QueryRow(stmt, createdImagePath, 1, binary).Scan(&imageId); err != nil {
 		return err
 	}
-	adminAvatarPath := "./static/users/upload/avatars/" + adminId.String()
-	if err := os.Mkdir(adminAvatarPath, 0744); err != nil {
-		return err
-	}
-	// avatar
-	// проверить есть ли папка
-	adminAvatarPath += "/1.jpeg"
-	if err := copyFile("./static/assets/admin/avatar.jpeg", adminAvatarPath); err != nil {
-		return err
-	}
 
-	stmt = `INSERT INTO avatars(path, path_id, owner_id) VALUES($1, $2, $3)`
-	if _, err := tx.Exec(stmt, adminAvatarPath, 1, binary); err != nil {
+	if err := migutil.CreateUserAvatar(tx, *adminId, "./static/assets/admin/avatar.jpeg"); err != nil {
 		return err
 	}
 	return nil
-	// migrator : volume : app
-	// /app/static/users/upload : share : /app/static/users/upload
-	// /app/static/users/upload/  {userid}/1.jpeg -> /app/static/users/upload/{userid}/1.jpeg
 }
 
 func downCreateAdmin(ctx context.Context, tx *sql.Tx) error {
