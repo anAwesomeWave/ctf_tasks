@@ -63,7 +63,7 @@ http://localhost:8080/static/images/{userId}1.jpeg&is_visible=true
 - c) Также понимаем, что это единственная картинка админа, значит название файла (предположительно) - 1.jpeg
 Итог, делаем запрос к эндпоинту
 ```bash
-curl '/static/images/{AdminId}/1.jpeg?is_public=true'
+wget '/static/images/{AdminId}/1.jpeg?is_public=true'
 ```
 
 В результате сервер вернет изображение с флагом.
