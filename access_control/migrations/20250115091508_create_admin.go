@@ -84,7 +84,7 @@ func upCreateAdmin(ctx context.Context, tx *sql.Tx) error {
 		return err
 	}
 
-	if err := migutil.CreateUserAvatar(tx, *adminId, "./static/assets/admin/avatar.jpeg"); err != nil {
+	if err := migutil.UploadUserAvatar(tx, *adminId, "./static/assets/admin/avatar.jpeg"); err != nil {
 		return err
 	}
 	return nil

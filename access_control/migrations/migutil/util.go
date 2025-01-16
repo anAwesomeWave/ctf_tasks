@@ -4,6 +4,7 @@ import (
 	"accessCtf/internal/util"
 	"database/sql"
 	"errors"
+	"fmt"
 	"github.com/google/uuid"
 	"io"
 	"io/fs"
@@ -71,7 +72,7 @@ func CreateUser(tx *sql.Tx, login, password string, isAdmin bool) (*uuid.UUID, e
 	return &userId, nil
 }
 
-func CreateUserAvatar(tx *sql.Tx, userId uuid.UUID, avatarAssetPath string) error {
+func UploadUserAvatar(tx *sql.Tx, userId uuid.UUID, avatarAssetPath string) error {
 	avatarPath := "./static/users/upload/avatars/" + userId.String()
 
 	ex, err := isExists(avatarPath)
@@ -95,6 +96,35 @@ func CreateUserAvatar(tx *sql.Tx, userId uuid.UUID, avatarAssetPath string) erro
 		return err
 	}
 	if _, err := tx.Exec(stmt, avatarPath, 1, binary); err != nil {
+		return err
+	}
+	return nil
+}
+
+func UploadImage(tx *sql.Tx, userId uuid.UUID, imageAssetPath string, imageInd int) error {
+	imagePath := "./static/users/upload/" + userId.String()
+
+	ex, err := isExists(imagePath)
+	if err != nil {
+		return err
+	}
+	if !ex {
+		if err := os.Mkdir(imagePath, 0744); err != nil {
+			return err
+		}
+	}
+	imagePath += fmt.Sprintf("/%d.jpeg", imageInd)
+	if err := copyFile(imageAssetPath, imagePath); err != nil {
+		return err
+	}
+
+	stmt := `INSERT INTO images(path, path_id, creator_id) VALUES($1, $2, $3)`
+
+	binary, err := userId.MarshalBinary()
+	if err != nil {
+		return err
+	}
+	if _, err := tx.Exec(stmt, imagePath, imageInd, binary); err != nil {
 		return err
 	}
 	return nil
