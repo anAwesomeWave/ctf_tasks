@@ -6,15 +6,13 @@ volumes:
 
 services:
   app:
-    image: my_app   # нужно для тестов, мы собираем образ на стадии test-build. и используем его сейчас
-    build: # makefile для продакшн сборки всегда пересоберет образ, так что это можно удалить
+    build:
       dockerfile: Dockerfile_App
     deploy:
       resources:
         limits:
           memory: 25m
     environment:
-#      ENTRYPOINT_COMMAND: "server"
       DB_PATH: "db:5432"
     ports:
       - "8080:8081"

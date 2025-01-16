@@ -14,13 +14,7 @@ FROM alpine:latest
 
 RUN apk add --no-cache bash
 
-#RUN apk update && \
-#    apk add --no-cache imagemagick \
-#    libjpeg-turbo libpng ghostscript \
-#    fontconfig ttf-dejavu
-
 WORKDIR /app
-
 
 COPY --from=builder /app/migrate /app/migrate
 

@@ -25,8 +25,6 @@ func GetUserByJwtToken(strg storage.Storage) func(next http.Handler) http.Handle
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			_, claims, err := jwtauth.FromContext(r.Context())
 			if err != nil {
-				// за это отвечает jwtauth.Authenticator
-				//http.Error(w, "Unauthorized", http.StatusUnauthorized)
 				next.ServeHTTP(w, r)
 				return
 			}
@@ -46,7 +44,6 @@ func GetUserByJwtToken(strg storage.Storage) func(next http.Handler) http.Handle
 			user, err := strg.GetUserById(userUUID)
 			if err != nil {
 				user = nil
-				// за это отвечает jwtauth.Authenticator
 				log.Printf("%s: User with id %v not found in database: %v\n", fn, userUUID, err)
 				common.ServeError(w, http.StatusInternalServerError, "User not found in database", true)
 				return
