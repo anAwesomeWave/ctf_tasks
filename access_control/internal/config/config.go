@@ -8,10 +8,12 @@ import (
 )
 
 type AppConfig struct {
-	Env           string     `yaml:"env" env:"ENV" env-default:"local"`
-	StorageCfg    Storage    `yaml:"storage" env-required:"true"`
-	HTTPServerCfg HttpServer `yaml:"httpServer"`
-	ImagesCfg     Images     `yaml:"images"`
+	Env              string     `yaml:"env" env:"ENV" env-default:"local"`
+	StorageCfg       Storage    `yaml:"storage" env-required:"true"`
+	HTTPServerCfg    HttpServer `yaml:"httpServer"`
+	ImagesCfg        Images     `yaml:"images"`
+	JwtKey           string     `env:"JWT_SIGN_KEY" env-default:"my secret key"`
+	MaxFileSizeBytes int64      `env:"MAX_FILE_SIZE_BYTES" env-default:"3145728"` // 3 mb (3 << 20)
 }
 
 type HttpServer struct {

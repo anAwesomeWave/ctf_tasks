@@ -2,13 +2,23 @@ package app
 
 import (
 	"errors"
+	"fmt"
+	"io"
 	"io/fs"
+	"mime/multipart"
 	"net/http"
 	"os"
 )
 
-func validateFileMimeType(fileBytes []byte) error {
-	mimeType := http.DetectContentType(fileBytes)
+func validateFileMimeType(file multipart.File) error {
+	bytes, err := io.ReadAll(file) // :(((
+	if err != nil {
+		return &ImageAppError{
+			Code:    Internal,
+			Message: fmt.Sprintf("Internal error. cannot read file data into memory %v", err),
+		}
+	}
+	mimeType := http.DetectContentType(bytes)
 
 	allowedMimeTypes := map[string]bool{
 		"image/jpeg": true,

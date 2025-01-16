@@ -30,7 +30,8 @@ func PostUploadAvatar(imageApp app.App, strg storage.Storage) http.HandlerFunc {
 				return
 			}
 		}
-		if err := r.ParseMultipartForm(10 << 20); err != nil {
+		r.Body = http.MaxBytesReader(w, r.Body, imageApp.GetMaxFileBytes())
+		if err := r.ParseMultipartForm(imageApp.GetMaxFileBytes()); err != nil {
 			http.Error(w, "File too large", http.StatusBadRequest)
 			return
 		}

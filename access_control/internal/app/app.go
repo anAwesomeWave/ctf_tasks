@@ -36,19 +36,24 @@ func (e *ImageAppError) Error() string {
 type App interface {
 	LoadImage(id string, index uint64, iType ImageType) (*os.File, error)
 	SaveImage(file multipart.File, id string, index int64, iType ImageType) (string, error)
-	//GetDefaultImagePath() (string, error)
+	GetMaxFileBytes() int64
 }
 
 type DefaultApp struct {
 	basePathImages  string
 	basePathAvatars string
+	maxBytes        int64
+}
+
+func (d DefaultApp) GetMaxFileBytes() int64 {
+	return d.maxBytes
 }
 
 func isPathValid(path string) bool {
 	return !(strings.Contains(path, "..") || strings.HasPrefix(path, "/"))
 }
 
-func NewDefaultApp(imagesDir, avatarsDir string) (*DefaultApp, error) {
+func NewDefaultApp(imagesDir, avatarsDir string, maxBytes int64) (*DefaultApp, error) {
 	if !isPathValid(imagesDir) || !isPathValid(avatarsDir) {
 		return nil, &ImageAppError{
 			Code: Path,
@@ -62,10 +67,20 @@ func NewDefaultApp(imagesDir, avatarsDir string) (*DefaultApp, error) {
 	return &DefaultApp{
 		imagesDir,
 		avatarsDir,
+		maxBytes,
 	}, nil
 }
 
 func (d DefaultApp) SaveImage(file multipart.File, id string, index int64, iType ImageType) (string, error) {
+	//if err := validateFileMimeType(file); err != nil {
+	//	return "", &ImageAppError{
+	//		Code: Image,
+	//		Message: fmt.Sprintf(
+	//			"IMAGE ERROR: Malicous  Image Mime type %v",
+	//			err,
+	//		),
+	//	}
+	//}
 	uploadPrefix := ""
 	switch iType {
 	case Avatar:

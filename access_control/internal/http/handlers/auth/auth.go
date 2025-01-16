@@ -15,11 +15,6 @@ import (
 
 var TokenAuth *jwtauth.JWTAuth
 
-func init() {
-	// TODO: get from env
-	TokenAuth = jwtauth.New("HS256", []byte("secret"), nil)
-}
-
 const INVAILD_CREDENTIALS_QUERY = "isInvalid"
 
 func GetSignUpPage(w http.ResponseWriter, r *http.Request) {
