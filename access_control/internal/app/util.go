@@ -32,6 +32,9 @@ func validateFileMimeType(file multipart.File) error {
 		}
 	}
 
+	if _, err := file.Seek(0, 0); err != nil {
+		return err
+	}
 	return nil
 }
 

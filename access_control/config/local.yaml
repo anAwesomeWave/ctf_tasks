@@ -6,4 +6,3 @@ httpServer:
 images:
   basePath: "./static/users/upload/"
   avatarsPath: "./static/users/upload/avatars/"
-#  defaultAdminImageURL: "/static/users/upload/default/admin.jpg"

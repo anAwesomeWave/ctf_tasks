@@ -72,15 +72,9 @@ func NewDefaultApp(imagesDir, avatarsDir string, maxBytes int64) (*DefaultApp, e
 }
 
 func (d DefaultApp) SaveImage(file multipart.File, id string, index int64, iType ImageType) (string, error) {
-	//if err := validateFileMimeType(file); err != nil {
-	//	return "", &ImageAppError{
-	//		Code: Image,
-	//		Message: fmt.Sprintf(
-	//			"IMAGE ERROR: Malicous  Image Mime type %v",
-	//			err,
-	//		),
-	//	}
-	//}
+	if err := validateFileMimeType(file); err != nil {
+		return "", err
+	}
 	uploadPrefix := ""
 	switch iType {
 	case Avatar:

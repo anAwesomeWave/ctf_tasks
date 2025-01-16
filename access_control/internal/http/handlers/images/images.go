@@ -97,7 +97,7 @@ func PostUploadImage(imageApp app.App, strg storage.Storage) http.HandlerFunc {
 		}
 		r.Body = http.MaxBytesReader(w, r.Body, imageApp.GetMaxFileBytes())
 		if err := r.ParseMultipartForm(imageApp.GetMaxFileBytes()); err != nil {
-			http.Error(w, "File too large", http.StatusBadRequest)
+			common.ServeError(w, http.StatusBadRequest, "Bad Request. File too large.", ok)
 			return
 		}
 
