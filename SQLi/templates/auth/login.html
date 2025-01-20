@@ -1,0 +1,19 @@
+{{define "title"}}Login{{end}}
+
+{{define "head"}}
+<link rel="stylesheet" href="/static/server/css/auth.css">
+{{end}}
+
+{{define "content"}}
+<h2>Login</h2>
+<form action="/users/login" method="POST">
+    <label for="login">Username:</label><br>
+    <input type="text" id="login" name="login" required><br><br>
+    <label for="password">Password:</label><br>
+    <input type="password" id="password" name="password" required><br><br>
+    <input type="submit" value="Login">
+</form>
+{{ if .isInvalid }}
+<p><i>Invalid Credentials.</i></p>
+{{ end }}
+{{end}}

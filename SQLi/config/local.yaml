@@ -1,0 +1,8 @@
+env: local
+storage:
+  path: localhost:54321 # переопределяется в docker-compose
+httpServer:
+  address: "0.0.0.0:8081" # публичный порт в docker-compose - 8080
+images:
+  basePath: "./static/users/upload/"
+  avatarsPath: "./static/users/upload/avatars/"
