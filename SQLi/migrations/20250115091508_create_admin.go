@@ -1,7 +1,6 @@
 package migrations
 
 import (
-	"accessCtf/migrations/migutil"
 	"context"
 	"database/sql"
 	"fmt"
@@ -10,6 +9,7 @@ import (
 	"image/color"
 	"image/jpeg"
 	"os"
+	"sqli/migrations/migutil"
 )
 
 func init() {

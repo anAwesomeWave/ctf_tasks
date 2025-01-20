@@ -1,12 +1,12 @@
 package migrations
 
 import (
-	"accessCtf/migrations/migutil"
 	"context"
 	"database/sql"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/pressly/goose/v3"
+	"sqli/migrations/migutil"
 )
 
 func init() {

@@ -1,18 +1,18 @@
 package main
 
 import (
-	"accessCtf/internal/app"
-	"accessCtf/internal/http/common"
-	"accessCtf/internal/http/handlers/auth"
-	"accessCtf/internal/http/handlers/avatars"
-	"accessCtf/internal/http/handlers/images"
-	"accessCtf/internal/http/handlers/users"
-	midauth "accessCtf/internal/http/middleware/auth"
-	"accessCtf/internal/storage"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/jwtauth"
 	"net/http"
+	"sqli/internal/app"
+	"sqli/internal/http/common"
+	"sqli/internal/http/handlers/auth"
+	"sqli/internal/http/handlers/avatars"
+	"sqli/internal/http/handlers/images"
+	"sqli/internal/http/handlers/users"
+	midauth "sqli/internal/http/middleware/auth"
+	"sqli/internal/storage"
 )
 
 func setUpRouter(imagesApp app.App, strg storage.Storage) *chi.Mux {
@@ -41,7 +41,7 @@ func setUpRouter(imagesApp app.App, strg storage.Storage) *chi.Mux {
 		authR.Post("/users/login", auth.PostLoginPage(strg))
 
 		authR.Route("/static/images", func(r chi.Router) {
-			r.Get("/{userId}/{imageId}", images.GetImage(imagesApp))
+			r.Get("/{userId}/{imageId}", images.GetImage(strg, imagesApp))
 			r.Route("/upload", func(subR chi.Router) {
 				subR.Use(midauth.CustomAuthenticator(auth.TokenAuth))
 				subR.Get("/", images.GetUploadPage("images", "Image"))

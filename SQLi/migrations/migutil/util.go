@@ -1,7 +1,6 @@
 package migutil
 
 import (
-	"accessCtf/internal/util"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -53,18 +52,11 @@ func copyFile(src, dst string) error {
 }
 
 func CreateUser(tx *sql.Tx, login, password string, isAdmin bool) (*uuid.UUID, error) {
-	pHash, err := util.GetHashPassword(password)
-	if err != nil {
-		return nil, err
-	}
-
-	// return id and create avatar with image
-	// create assets folder and fill users images with it
 	var userId uuid.UUID
 	if err := tx.QueryRow(
-		`INSERT INTO users(login, password_hash, is_admin) VALUES($1, $2, $3) RETURNING id`,
+		`INSERT INTO users(login, password, is_admin) VALUES($1, $2, $3) RETURNING id`,
 		login,
-		pHash,
+		password,
 		isAdmin,
 	).Scan(&userId); err != nil {
 		return nil, err

@@ -1,14 +1,14 @@
 package users
 
 import (
-	"accessCtf/internal/app"
-	"accessCtf/internal/http/common"
-	midauth "accessCtf/internal/http/middleware/auth"
-	"accessCtf/internal/storage"
 	"errors"
 	"html/template"
 	"log"
 	"net/http"
+	"sqli/internal/app"
+	"sqli/internal/http/common"
+	midauth "sqli/internal/http/middleware/auth"
+	"sqli/internal/storage"
 	"strings"
 )
 

@@ -1,15 +1,15 @@
 package main
 
 import (
-	"accessCtf/internal/app"
-	"accessCtf/internal/config"
-	"accessCtf/internal/http/handlers/auth"
-	"accessCtf/internal/storage"
 	"fmt"
 	"github.com/go-chi/jwtauth"
 	"github.com/joho/godotenv"
 	"log"
 	"net/http"
+	"sqli/internal/app"
+	"sqli/internal/config"
+	"sqli/internal/http/handlers/auth"
+	"sqli/internal/storage"
 	"time"
 )
 

@@ -1,15 +1,15 @@
 package auth
 
 import (
-	"accessCtf/internal/http/common"
-	midauth "accessCtf/internal/http/middleware/auth"
-	"accessCtf/internal/storage"
 	"errors"
 	"fmt"
 	"github.com/go-chi/jwtauth"
 	"html/template"
 	"log"
 	"net/http"
+	"sqli/internal/http/common"
+	midauth "sqli/internal/http/middleware/auth"
+	"sqli/internal/storage"
 	"time"
 )
 

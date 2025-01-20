@@ -1,9 +1,6 @@
 package auth
 
 import (
-	"accessCtf/internal/http/common"
-	"accessCtf/internal/storage"
-	"accessCtf/internal/storage/models"
 	"context"
 	"errors"
 	"github.com/go-chi/jwtauth"
@@ -11,6 +8,9 @@ import (
 	"github.com/lestrrat-go/jwx/jwt"
 	"log"
 	"net/http"
+	"sqli/internal/http/common"
+	"sqli/internal/storage"
+	"sqli/internal/storage/models"
 )
 
 type contextKey string

@@ -34,7 +34,7 @@ func (e *ImageAppError) Error() string {
 }
 
 type App interface {
-	LoadImage(id string, index uint64, iType ImageType) (*os.File, error)
+	LoadImage(id string, index int64, iType ImageType) (*os.File, error)
 	SaveImage(file multipart.File, id string, index int64, iType ImageType) (string, error)
 	GetMaxFileBytes() int64
 }
@@ -160,8 +160,8 @@ func (d DefaultApp) SaveImage(file multipart.File, id string, index int64, iType
 	return uploadPrefix, nil
 }
 
-func (d DefaultApp) loadDefaultImage(id string, index uint64) (*os.File, error) {
-	imagePath := d.basePathImages + id + "/" + strconv.FormatUint(index, 10) + ".jpeg"
+func (d DefaultApp) loadDefaultImage(id string, index int64) (*os.File, error) {
+	imagePath := d.basePathImages + id + "/" + strconv.FormatInt(index, 10) + ".jpeg"
 	if ex, err := isExists(imagePath); err != nil || !ex {
 		if err != nil {
 			return nil, &ImageAppError{
@@ -178,8 +178,8 @@ func (d DefaultApp) loadDefaultImage(id string, index uint64) (*os.File, error) 
 	return os.Open(imagePath)
 }
 
-func (d DefaultApp) loadAvatar(id string, index uint64) (*os.File, error) {
-	avatarsPath := d.basePathAvatars + id + "/" + strconv.FormatUint(index, 10) + ".jpeg"
+func (d DefaultApp) loadAvatar(id string, index int64) (*os.File, error) {
+	avatarsPath := d.basePathAvatars + id + "/" + strconv.FormatInt(index, 10) + ".jpeg"
 	if ex, err := isExists(avatarsPath); err != nil || !ex {
 		if err != nil {
 			return nil, &ImageAppError{
@@ -195,7 +195,7 @@ func (d DefaultApp) loadAvatar(id string, index uint64) (*os.File, error) {
 	return os.Open(avatarsPath)
 }
 
-func (d DefaultApp) LoadImage(id string, index uint64, iType ImageType) (*os.File, error) {
+func (d DefaultApp) LoadImage(id string, index int64, iType ImageType) (*os.File, error) {
 	switch iType {
 	case DefaultImage:
 		return d.loadDefaultImage(id, index)

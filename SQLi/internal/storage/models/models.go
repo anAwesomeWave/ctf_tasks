@@ -6,10 +6,10 @@ import (
 )
 
 type Users struct {
-	Id           uuid.UUID
-	Login        string
-	PasswordHash string
-	IsAdmin      bool // can be some int or struct for more roles
+	Id       uuid.UUID
+	Login    string
+	Password string
+	IsAdmin  bool // can be some int or struct for more roles
 }
 
 type Images struct {

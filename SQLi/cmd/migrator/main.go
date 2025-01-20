@@ -1,8 +1,6 @@
 package main
 
 import (
-	"accessCtf/internal/config"
-	"accessCtf/internal/storage"
 	"flag"
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/jackc/pgx/v5/stdlib"
@@ -10,11 +8,13 @@ import (
 	"github.com/pressly/goose/v3"
 	"log"
 	"os"
+	"sqli/internal/config"
+	"sqli/internal/storage"
 	"time"
 )
 
 import (
-	_ "accessCtf/migrations"
+	_ "sqli/migrations"
 )
 
 func main() {

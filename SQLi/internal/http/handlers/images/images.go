@@ -1,16 +1,17 @@
 package images
 
 import (
-	"accessCtf/internal/app"
-	"accessCtf/internal/http/common"
-	midauth "accessCtf/internal/http/middleware/auth"
-	"accessCtf/internal/storage"
 	"errors"
 	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
 	"html/template"
 	"io"
 	"log"
 	"net/http"
+	"sqli/internal/app"
+	"sqli/internal/http/common"
+	midauth "sqli/internal/http/middleware/auth"
+	"sqli/internal/storage"
 	"strconv"
 	"strings"
 )
@@ -143,21 +144,12 @@ func PostUploadImage(imageApp app.App, strg storage.Storage) http.HandlerFunc {
 	}
 }
 
-func GetImage(imageApp app.App) http.HandlerFunc {
+func GetImage(strg storage.Storage, imageApp app.App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		user, userFound := midauth.UserFromContext(r.Context())
 		userId := chi.URLParam(r, "userId")
 		imageId := chi.URLParam(r, "imageId")
-		if !(userFound && (user.IsAdmin || user.Id.String() == userId)) {
-			common.ServeError(
-				w,
-				http.StatusUnauthorized,
-				"you have no rights to view this image!!!",
-				user != nil,
-			)
-			return
-		}
-		uiImageId, err := strconv.ParseUint(imageId, 10, 32)
+		iImageId, err := strconv.ParseInt(imageId, 10, 32)
 		if err != nil {
 			common.ServeError(
 				w,
@@ -167,7 +159,41 @@ func GetImage(imageApp app.App) http.HandlerFunc {
 			)
 			return
 		}
-		file, err := imageApp.LoadImage(userId, uiImageId, app.DefaultImage)
+		isPublic := true
+		if userId != "default" {
+			userUUID, err := uuid.Parse(userId)
+			if err != nil {
+				log.Println(err)
+				common.ServeError(
+					w,
+					http.StatusInternalServerError,
+					"Internal error",
+					user != nil,
+				)
+				return
+			}
+			isPublic, err = strg.IsImagePublic(userUUID)
+			if err != nil {
+				log.Println(err)
+				common.ServeError(
+					w,
+					http.StatusInternalServerError,
+					"Internal error",
+					user != nil,
+				)
+				return
+			}
+		}
+		if !(isPublic || (userFound && (user.IsAdmin || user.Id.String() == userId))) {
+			common.ServeError(
+				w,
+				http.StatusUnauthorized,
+				"you have no rights to view this image!!!",
+				user != nil,
+			)
+			return
+		}
+		file, err := imageApp.LoadImage(userId, iImageId, app.DefaultImage)
 		if err != nil {
 			log.Println(err)
 			common.ServeError(

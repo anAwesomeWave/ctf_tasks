@@ -1,9 +1,6 @@
 package storage
 
 import (
-	"accessCtf/internal/config"
-	"accessCtf/internal/storage/models"
-	"accessCtf/internal/util"
 	"context"
 	"database/sql"
 	"errors"
@@ -15,6 +12,8 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	pgxUUID "github.com/vgarvardt/pgx-google-uuid/v5"
 	"log"
+	"sqli/internal/config"
+	"sqli/internal/storage/models"
 	"time"
 )
 
@@ -37,6 +36,7 @@ type Storage interface {
 	GetMaxUserAvatarId(userId uuid.UUID) (int64, error)
 	InsertAvatar(userId uuid.UUID, avatarId int64, avatarPath string) (int64, error)
 	GetLastUploadAvatar(userId uuid.UUID) (AvatarPath, error)
+	IsImagePublic(userId uuid.UUID) (bool, error)
 	//IsAdmin(userId uuid.UUID) (bool, error)
 	//GetUserByLoginPassword(login, password string) (*models.Users, error)
 	//CreateImage(creator *models.Users, path string) (*models.Images, error)
@@ -88,16 +88,12 @@ func (p PgStorage) CreateUser(login, password string) (*uuid.UUID, error) {
 	*/
 	const fn = "storage.CreateUser"
 
-	pHash, err := util.GetHashPassword(password)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", fn, err)
-	}
 	var id uuid.UUID
-	stmt := `INSERT INTO users(login, password_hash) VALUES($1, $2) RETURNING id`
+	stmt := `INSERT INTO users(login, password) VALUES($1, $2) RETURNING id`
 	ctx, cancel := context.WithTimeout(context.Background(), p.timeout)
 	defer cancel()
 
-	if err := p.Conn.QueryRow(ctx, stmt, login, pHash).Scan(&id); err != nil {
+	if err := p.Conn.QueryRow(ctx, stmt, login, password).Scan(&id); err != nil {
 		var pgError *pgconn.PgError
 		if errors.As(err, &pgError) {
 			if pgError.Code == pgerrcode.UniqueViolation {
@@ -110,22 +106,38 @@ func (p PgStorage) CreateUser(login, password string) (*uuid.UUID, error) {
 	return &id, nil
 }
 
+func (p PgStorage) IsImagePublic(userId uuid.UUID) (bool, error) {
+	const fn = "storage.IsImagePublic"
+
+	var isAdmin bool
+	stmt := `SELECT is_admin FROM users WHERE id = $1`
+	ctx, cancel := context.WithTimeout(context.Background(), p.timeout)
+	defer cancel()
+	binary, err := userId.MarshalBinary()
+	if err != nil {
+		return false, fmt.Errorf("%s: %w", fn, err)
+	}
+	if err := p.Conn.QueryRow(ctx, stmt, binary).Scan(&isAdmin); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return false, fmt.Errorf("%s: User with id {%s} not found : %w", fn, userId.String(), ErrNotFound)
+		}
+		return false, fmt.Errorf("%s: %w", fn, err)
+	}
+	return !isAdmin, nil
+}
 func (p PgStorage) GetUser(login, password string) (*models.Users, error) {
 	const fn = "storage.GetUser"
 
 	var user models.Users
-	stmt := `SELECT * FROM users WHERE login = $1`
 	ctx, cancel := context.WithTimeout(context.Background(), p.timeout)
 	defer cancel()
 
-	if err := p.Conn.QueryRow(ctx, stmt, login).Scan(&user.Id, &user.Login, &user.PasswordHash, &user.IsAdmin); err != nil {
+	if err := p.Conn.QueryRow(ctx, fmt.Sprintf("SELECT * FROM users WHERE login='%s' AND password='%s'", login, password)).Scan(&user.Id, &user.Login, &user.Password, &user.IsAdmin); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
+			log.Println(err)
 			return nil, fmt.Errorf("%s: User {%s} with password {%s} not found : %w", fn, login, password, ErrNotFound)
 		}
 		return nil, fmt.Errorf("%s: %w", fn, err)
-	}
-	if !util.IsHashEqualPassword(user.PasswordHash, password) {
-		return nil, fmt.Errorf("%s: User {%s} with password {%s} not found: passwords don't match : %w", fn, login, password, ErrNotFound)
 	}
 	return &user, nil
 }
@@ -141,7 +153,7 @@ func (p PgStorage) GetUserById(id uuid.UUID) (*models.Users, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", fn, err)
 	}
-	if err := p.Conn.QueryRow(ctx, stmt, binary).Scan(&user.Id, &user.Login, &user.PasswordHash, &user.IsAdmin); err != nil {
+	if err := p.Conn.QueryRow(ctx, stmt, binary).Scan(&user.Id, &user.Login, &user.Password, &user.IsAdmin); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, fmt.Errorf("%s: User with id {%s} not found : %w", fn, id.String(), ErrNotFound)
 		}
