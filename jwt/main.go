@@ -33,10 +33,6 @@ func init() {
 	})
 }
 
-// var (
-// 	secret = []byte("mysecret")
-// )
-
 func GetJwtToken(r *http.Request) string {
 	//from header
 	authHeader := r.Header.Get("Authorization")
@@ -138,7 +134,7 @@ func VulnerableValidate(r *http.Request) (jwt.MapClaims, error) {
 			fmt.Println("try new key")
 			token, err = jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
 				// для rsa нужен *rsa.PublicKey
-				return publicKey, nil // вот тут доверяем указанному в токене алгоритму и используем публичный RSA ключ как секрет для HMAC
+				return publicKey, nil 
 			})
 			if err != nil {
 				return jwt.MapClaims{}, fmt.Errorf("Ошибка при парсинге токена: %v %s", err, tokenStr)
@@ -183,6 +179,7 @@ func main() {
 
 	// получить токен
 	http.HandleFunc("/auth", GenerateJwtHandler)
+	// тестовая ручка, сразу получает "хакнутый" токен, подписанный hmac
 	http.HandleFunc("/authHack", GenerateJwtHandlerHack)
 
 	log.Println("Listening...")
