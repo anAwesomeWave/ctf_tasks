@@ -1,0 +1,10 @@
+version: '3'
+
+services:
+  app:
+    build:
+      dockerfile: Dockerfile_App
+    environment:
+      CTF_FLAG: "practice{jwt}"
+    ports:
+      - "8080:8081"
