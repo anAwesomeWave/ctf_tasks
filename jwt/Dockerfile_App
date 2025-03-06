@@ -18,5 +18,8 @@ WORKDIR /app
 RUN apk add --no-cache bash
 
 COPY --from=builder /app/server /app/server
+COPY templates templates
+
+COPY static static
 
 CMD ["./server"]

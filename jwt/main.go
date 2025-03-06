@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"html/template"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -153,20 +154,44 @@ func VulnerableValidate(r *http.Request) (jwt.MapClaims, error) {
 func sendHttpFlag(w http.ResponseWriter, r *http.Request) {
 	claims, err := VulnerableValidate(r)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		sendErr(&w, err)
 		return
 	}
 	userString, ok := claims["user"].(string)
 	if !ok {
-		http.Error(w, "field \"user\" not in jwt token", http.StatusInternalServerError)
+		sendErr(&w, fmt.Errorf("field \"user\" not in jwt token"))
 		return
 	}
 	if userString != "admin" {
-		http.Error(w, "Forbidden, only \"admin\" can view flag", http.StatusForbidden)
+		sendErr(&w, fmt.Errorf("Forbidden, only \"admin\" can view flag"))
 		fmt.Println("VulnerableValidate - return", ok, err)
 		return
 	}
-	w.Write([]byte(os.Getenv("CTF_FLAG")))
+	t, err := template.ParseFiles("./templates/index.html")
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	if err := t.Execute(w, map[string]interface{}{
+		"msg": os.Getenv("CTF_FLAG"),
+	}); err != nil {
+		log.Println(err)
+		return
+	}
+}
+
+func sendErr(w *http.ResponseWriter, errCustom error) {
+	t, err := template.ParseFiles("./templates/index.html")
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	if err := t.Execute(*w, map[string]interface{}{
+		"msg": errCustom.Error(),
+	}); err != nil {
+		log.Println(err)
+		return
+	}
 }
 
 func main() {
