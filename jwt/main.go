@@ -101,7 +101,7 @@ func GenerateJwtTokenHack(user string) (string, error) {
 		"exp":  time.Now().Add(time.Hour).Unix(),
 	})
 
-	// Подписываем токен с использованием приватного ключа
+	log.Println(publicKeyBytes)
 	signedToken, err := token.SignedString(publicKeyBytes)
 	if err != nil {
 		return "", fmt.Errorf("failed to sign token: %v", err)
@@ -173,18 +173,14 @@ func main() {
 
 	// узнать публичный ключ
 	http.HandleFunc("/public-key", func(w http.ResponseWriter, r *http.Request) {
-
-		pem.Encode(w, &pem.Block{
-			Type:  "PUBLIC KEY",
-			Bytes: publicKeyBytes,
-		})
+		w.Write([]byte(publicKeyBytes))
 	})
 
 	// получить токен
 	http.HandleFunc("/auth", GenerateJwtHandler)
 	http.HandleFunc("/authHack", GenerateJwtHandlerHack)
 
-
 	log.Println("Listening...")
+	log.Println("public-key: ", string(publicKeyBytes))
 	log.Fatal(http.ListenAndServe("0.0.0.0:8081", nil))
 }
