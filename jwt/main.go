@@ -123,10 +123,10 @@ func GenerateJwtHandlerHack(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(token))
 }
 
-func VulnerableValidate(r *http.Request) (bool, error) {
+func VulnerableValidate(r *http.Request) (jwt.MapClaims, error) {
 	tokenStr := GetJwtToken(r)
 	if tokenStr == "" {
-		return false, fmt.Errorf("GetJwtToken: no token found")
+		return jwt.MapClaims{}, fmt.Errorf("GetJwtToken: no token found")
 	}
 	fmt.Println("Token:", tokenStr)
 	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
@@ -141,27 +141,32 @@ func VulnerableValidate(r *http.Request) (bool, error) {
 				return publicKey, nil // вот тут доверяем указанному в токене алгоритму и используем публичный RSA ключ как секрет для HMAC
 			})
 			if err != nil {
-				return false, fmt.Errorf("Ошибка при парсинге токена: %v %s", err, tokenStr)
+				return jwt.MapClaims{}, fmt.Errorf("Ошибка при парсинге токена: %v %s", err, tokenStr)
 			}
 		} else {
-			return false, fmt.Errorf("Ошибка при парсинге токена: %v %s", err, tokenStr)
+			return jwt.MapClaims{}, fmt.Errorf("Ошибка при парсинге токена: %v %s", err, tokenStr)
 		}
 	}
 	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok || !token.Valid {
-		fmt.Println("Token is NOT valid")
-		return false, nil
+	if token.Valid && ok {
+		return claims, nil
 	}
-
-	fmt.Println("Token is  valid:", claims)
-
-	userString, ok := claims["user"].(string)
-	return ok && userString == "admin", nil
+	return jwt.MapClaims{}, fmt.Errorf("Ошибка при парсинге токена: %v %s", err, tokenStr)
 }
 
 func sendHttpFlag(w http.ResponseWriter, r *http.Request) {
-	if ok, err := VulnerableValidate(r); err != nil || !ok {
-		http.Error(w, "Forbidden", http.StatusForbidden)
+	claims, err := VulnerableValidate(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	userString, ok := claims["user"].(string)
+	if !ok {
+		http.Error(w, "field \"user\" not in jwt token", http.StatusInternalServerError)
+		return
+	}
+	if userString != "admin" {
+		http.Error(w, "Forbidden, only \"admin\" can view flag", http.StatusForbidden)
 		fmt.Println("VulnerableValidate - return", ok, err)
 		return
 	}
