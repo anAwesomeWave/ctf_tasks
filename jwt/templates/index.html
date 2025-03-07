@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/static/server/css/base-nav.css">
+    <link rel="stylesheet" href="/static/server/base-nav.css">
+    <script src="/static/server/redirect.js"></script>
     <title>JWT!!</title>
 </head>
 <body>
@@ -11,7 +12,11 @@
     <nav>
         <ul><a href="/">Admin Only! Sesitive Data </a></ul>
         <li><a href="/public-key">Get server's public key.</a></li>
-        <li><a href="/auth">Get Your Personal Token!</a></li>
+        <!-- <li><p href="/auth" id="auth-redir">Get Your Personal Token!</p></li> -->
+         <div>
+            <button onclick="redirectToCustomURL()">Get Your Personal Token For User:</button>
+            <input type="text" id="userInput" placeholder="Enter your username here">
+        </div>
     </nav>
 </header>
     {{.msg}}

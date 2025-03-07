@@ -138,17 +138,20 @@ func VulnerableValidate(r *http.Request) (jwt.MapClaims, error) {
 				return publicKey, nil 
 			})
 			if err != nil {
-				return jwt.MapClaims{}, fmt.Errorf("Ошибка при парсинге токена: %v %s", err, tokenStr)
+				log.Printf("Ошибка при парсинге токена: %v %s\n", err, tokenStr)
+				return jwt.MapClaims{}, fmt.Errorf("Ошибка при парсинге токена: %s", tokenStr)
 			}
 		} else {
-			return jwt.MapClaims{}, fmt.Errorf("Ошибка при парсинге токена: %v %s", err, tokenStr)
+			log.Printf("Ошибка при парсинге токена: %v %s\n", err, tokenStr)
+			return jwt.MapClaims{}, fmt.Errorf("Ошибка при парсинге токена: %s", tokenStr)
 		}
 	}
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if token.Valid && ok {
 		return claims, nil
 	}
-	return jwt.MapClaims{}, fmt.Errorf("Ошибка при парсинге токена: %v %s", err, tokenStr)
+	log.Printf("Ошибка при парсинге токена: %v %s\n", err, tokenStr)
+	return jwt.MapClaims{}, fmt.Errorf("Ошибка при парсинге токена: %s", tokenStr)
 }
 
 func sendHttpFlag(w http.ResponseWriter, r *http.Request) {
@@ -195,19 +198,24 @@ func sendErr(w *http.ResponseWriter, errCustom error) {
 }
 
 func main() {
-	http.HandleFunc("/", sendHttpFlag) // получить флаг
+
+
+	mux := http.NewServeMux()
+
+	mux.Handle("/static/server/", http.StripPrefix("/static/server/", http.FileServer(http.Dir("static"))))
+	mux.HandleFunc("/", sendHttpFlag) // получить флаг
 
 	// узнать публичный ключ
-	http.HandleFunc("/public-key", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/public-key", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(publicKeyBytes))
 	})
 
 	// получить токен
-	http.HandleFunc("/auth", GenerateJwtHandler)
+	mux.HandleFunc("/auth", GenerateJwtHandler)
 	// тестовая ручка, сразу получает "хакнутый" токен, подписанный hmac
-	http.HandleFunc("/authHack", GenerateJwtHandlerHack)
+	mux.HandleFunc("/authHack", GenerateJwtHandlerHack)
 
 	log.Println("Listening...")
 	log.Println("public-key: ", string(publicKeyBytes))
-	log.Fatal(http.ListenAndServe("0.0.0.0:8081", nil))
+	log.Fatal(http.ListenAndServe("0.0.0.0:8081", mux))
 }

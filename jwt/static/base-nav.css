@@ -45,7 +45,7 @@ header nav ul a {
 header nav ul a:hover {
     color: #ff4d4d;
 }
-
+/* 
 button {
     background-color: #e60023;
     color: #fff;
@@ -55,11 +55,11 @@ button {
     font-size: 1rem;
     cursor: pointer;
     transition: background-color 0.3s ease;
-}
+} */
 
-button:hover {
+/* button:hover {
     background-color: #cc001f;
-}
+} */
 
 h1 {
     text-align: center;
