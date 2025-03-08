@@ -85,7 +85,17 @@ func GenerateJwtHandler(w http.ResponseWriter, r *http.Request) {
 		Name:  "jwt",
 		Value: token,
 	})
-	w.Write([]byte(token))
+	t, err := template.ParseFiles("./templates/index.html")
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	if err := t.Execute(w, map[string]interface{}{
+		"msg": token,
+	}); err != nil {
+		log.Println(err)
+		return
+	}
 }
 
 func GenerateJwtTokenHack(user string) (string, error) {
@@ -166,7 +176,7 @@ func sendHttpFlag(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if userString != "admin" {
-		sendErr(&w, fmt.Errorf("Forbidden, only \"admin\" can view flag"))
+		sendErr(&w, fmt.Errorf("Forbidden, for user \"%s\", only \"admin\" can view flag", userString))
 		fmt.Println("VulnerableValidate - return", ok, err)
 		return
 	}
@@ -207,7 +217,7 @@ func main() {
 
 	// узнать публичный ключ
 	mux.HandleFunc("/public-key", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(publicKeyBytes))
+		w.Write(publicKeyBytes)
 	})
 
 	// получить токен
