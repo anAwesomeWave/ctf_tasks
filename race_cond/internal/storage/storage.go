@@ -8,6 +8,7 @@ import (
 	"log"
 	"race_cond/internal/storage/models"
 	"time"
+	"math/rand"
 )
 
 var (
@@ -22,10 +23,6 @@ type Storage interface {
 	GetUser(login, password string) (*models.User, error)
 	GetUserById(id int64) (*models.User, error)
 	UpdateBalance(id int64) (*models.User, error)
-	//IsAdmin(userId uuid.UUID) (bool, error)
-	//GetUserByLoginPassword(login, password string) (*models.Users, error)
-	//CreateImage(creator *models.Users, path string) (*models.Images, error)
-	//CreateAvatar(creator *models.Users, path string) (*models.Avatars, error)
 }
 
 type LiteStrg struct {
@@ -99,15 +96,12 @@ func (p LiteStrg) GetUserById(id int64) (*models.User, error) {
 }
 
 func (p LiteStrg) UpdateBalance(id int64) (*models.User, error) {
-	user, err := p.GetUserById(id)
+	time.Sleep(time.Duration(1 +rand.Intn(2)) * time.Second)
+	result, err := p.Db.Exec("UPDATE users SET balance = balance + 100, got_bonus = 1 WHERE id = ?", id)
 	if err != nil {
 		return nil, err
 	}
-	result, err := p.Db.Exec("UPDATE users SET balance = ?, got_bonus = ? WHERE id = ?", user.Balance+100, 1, user.Id)
-	if err != nil {
-		return nil, err
-	}
-	time.Sleep(2 * time.Second)
+	// time.Sleep(2 * time.Second)
 	// Check if any rows were affected
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
