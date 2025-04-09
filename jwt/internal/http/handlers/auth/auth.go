@@ -162,6 +162,7 @@ func PostLoginPage(strg storage.Storage) http.HandlerFunc {
 			"exp":     time.Now().Add(time.Hour).Unix(),
 		})
 		if err != nil {
+			log.Println(err)
 			common.ServeError(
 				w,
 				http.StatusInternalServerError,

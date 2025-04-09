@@ -1,4 +1,4 @@
-package auth
+package handlers
 
 import (
 	"errors"
@@ -7,9 +7,9 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"sqli/internal/http/common"
-	midauth "sqli/internal/http/middleware/auth"
-	"sqli/internal/storage"
+	"race_cond/internal/http/common"
+	midauth "race_cond/internal/http/middleware"
+	"race_cond/internal/storage"
 	"time"
 )
 

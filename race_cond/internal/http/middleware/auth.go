@@ -4,13 +4,12 @@ import (
 	"context"
 	"errors"
 	"github.com/go-chi/jwtauth"
-	"github.com/google/uuid"
-	"github.com/lestrrat-go/jwx/jwt"
 	"log"
 	"net/http"
 	"race_cond/internal/http/common"
 	"race_cond/internal/storage"
 	"race_cond/internal/storage/models"
+	"strconv"
 )
 
 type contextKey string
@@ -35,16 +34,16 @@ func GetUserByJwtToken(strg storage.Storage) func(next http.Handler) http.Handle
 				common.ServeError(w, http.StatusInternalServerError, "Invalid token", true)
 				return
 			}
-			userUUID, err := uuid.Parse(userIdString)
+			userId, err := strconv.ParseInt(userIdString, 10, 64)
 			if err != nil {
-				log.Printf("%s: Cannot parse token string into UUID - %s", fn, userIdString)
+				log.Printf("%s: Cannot parse token string into int64 - %s", fn, userIdString)
 				common.ServeError(w, http.StatusInternalServerError, "Invalid token", true)
 				return
 			}
-			user, err := strg.GetUserById(userUUID)
+			user, err := strg.GetUserById(userId)
 			if err != nil {
 				user = nil
-				log.Printf("%s: User with id %v not found in database: %v\n", fn, userUUID, err)
+				log.Printf("%s: User with id %v not found in database: %v\n", fn, userId, err)
 				common.ServeError(w, http.StatusInternalServerError, "User not found in database", true)
 				return
 			}
@@ -54,23 +53,7 @@ func GetUserByJwtToken(strg storage.Storage) func(next http.Handler) http.Handle
 	}
 }
 
-func UserFromContext(ctx context.Context) (*models.Users, bool) {
-	user, ok := ctx.Value(userContextKey).(*models.Users)
+func UserFromContext(ctx context.Context) (*models.User, bool) {
+	user, ok := ctx.Value(userContextKey).(*models.User)
 	return user, ok
-}
-
-func CustomAuthenticator(ja *jwtauth.JWTAuth) func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		hfn := func(w http.ResponseWriter, r *http.Request) {
-			token, _, err := jwtauth.FromContext(r.Context())
-
-			if err != nil || token == nil || jwt.Validate(token) != nil {
-				common.ServeError(w, 401, "Unauthorized! please, login to your account", false)
-				return
-			}
-
-			next.ServeHTTP(w, r)
-		}
-		return http.HandlerFunc(hfn)
-	}
 }
