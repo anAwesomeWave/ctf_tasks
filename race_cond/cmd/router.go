@@ -11,7 +11,7 @@ import (
 	"race_cond/internal/storage"
 )
 
-func setUpRouter(strg storage.Storage) *chi.Mux {
+func setUpRouter(strg storage.Storage, flag string) *chi.Mux {
 	router := chi.NewRouter()
 	router.Use(middleware.RequestID)
 	router.Use(middleware.Logger)
@@ -40,6 +40,7 @@ func setUpRouter(strg storage.Storage) *chi.Mux {
 			bonusR.Use(midauth.CustomAuthenticator(handlers.TokenAuth))
 			bonusR.Get("/bonus", handlers.GetBonusPage)
 			bonusR.Post("/bonus", handlers.GetBonus(strg))
+			bonusR.Get("/flag", handlers.GetFlag(flag))
 		})
 	})
 	return router

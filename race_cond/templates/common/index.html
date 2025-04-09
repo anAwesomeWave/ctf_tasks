@@ -1,3 +1,7 @@
+{{define "head"}}
+<link rel="stylesheet" href="/static/server/css/item.css">
+{{end}}
+
 {{define "content"}}
     {{ if .isLogined }}
         <h1> Ваш баланс: {{ .balance }} </h1>
@@ -5,5 +9,12 @@
 
     <h2> Регистрируйстесь и получайте бонус! ---> <a href="/bonus"> бонус! </a> <----</h2>
     <h2> Товары: </h2>
-
+    <div class="grid">
+        <div class="item">
+            <img src="/static/server/img/1.png">
+            <p class="info">Секретное знание</p>
+            <p class="price"> Price: 200.</p>
+            <a href="/flag">Получить</a>
+        </div>
+    </div>
 {{end}}

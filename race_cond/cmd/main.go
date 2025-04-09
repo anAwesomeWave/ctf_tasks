@@ -19,10 +19,11 @@ func main() {
 	handlers.TokenAuth = jwtauth.New("HS256", []byte(secretKey), nil)
 	strg := storage.InitDB()
 
-	// http.HandleFunc("/register", registerHandler)
-	// http.HandleFunc("/bonus", bonusHandler)
-	// http.HandleFunc("/flag", flagHandler)
-	router := setUpRouter(strg)
+	flag := os.Getenv("CTF_FLAG")
+	if flag == "" {
+		flag = "practice{anawesomewave}"
+	}
+	router := setUpRouter(strg, flag)
 	log.Printf("Server started on :%d\n", port)
 	serv := &http.Server{
 		Addr:    fmt.Sprintf("0.0.0.0:%d", port),

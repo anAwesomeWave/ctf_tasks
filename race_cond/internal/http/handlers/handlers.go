@@ -69,35 +69,29 @@ func GetBonus(strg storage.Storage) http.HandlerFunc {
 		)
 	}
 }
+func GetFlag(flag string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		user, isLogined := midauth.UserFromContext(r.Context())
+		t, err := template.ParseFiles("./templates/common/base.html", "./templates/common/flag.html")
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		if user.Balance < 200 {
+			common.ServeError(
+				w,
+				http.StatusForbidden,
+				"You don't have enough money to view this",
+				isLogined,
+			)
+		}
+		if err := t.Execute(w, map[string]interface{}{"isLogined": isLogined, "flag": flag}); err != nil {
+			log.Println(err)
+			return
+		}
+	}
+}
 
-//func bonusHandler(w http.ResponseWriter, r *http.Request) {
-//	username := r.URL.Query().Get("username")
-//	if username == "" {
-//		http.Error(w, "Username required", http.StatusBadRequest)
-//		return
-//	}
-//
-//	var gotBonus int
-//	err := db.QueryRow("SELECT got_bonus FROM users WHERE username = ?", username).Scan(&gotBonus)
-//	if err != nil {
-//		http.Error(w, "User not found", http.StatusNotFound)
-//		return
-//	}
-//
-//	if gotBonus == 1 {
-//		http.Error(w, "Bonus already claimed", http.StatusForbidden)
-//		return
-//	}
-//
-//	_, err = db.Exec("UPDATE users SET balance = balance + 100, got_bonus = 1 WHERE username = ?", username)
-//	if err != nil {
-//		http.Error(w, "Failed to update balance", http.StatusInternalServerError)
-//		return
-//	}
-//
-//	fmt.Fprintf(w, "Bonus granted to %s", username)
-//}
-//
 //func flagHandler(w http.ResponseWriter, r *http.Request) {
 //	username := r.URL.Query().Get("username")
 //	if username == "" {
