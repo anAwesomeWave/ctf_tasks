@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 	"github.com/go-chi/jwtauth"
 	"log"
 	"net/http"
@@ -28,6 +29,9 @@ func main() {
 	serv := &http.Server{
 		Addr:    fmt.Sprintf("0.0.0.0:%d", port),
 		Handler: router,
+		ReadTimeout: 10 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		MaxHeaderBytes: 1 << 20,
 	}
 	if err := serv.ListenAndServe(); err != nil {
 		log.Fatal(err)
