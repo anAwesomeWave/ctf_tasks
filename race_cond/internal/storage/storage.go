@@ -20,6 +20,7 @@ type Storage interface {
 	CreateUser(login, password string) (*models.User, error)
 	GetUser(login, password string) (*models.User, error)
 	GetUserById(id int64) (*models.User, error)
+	UpdateBalance(id int64) (*models.User, error)
 	//IsAdmin(userId uuid.UUID) (bool, error)
 	//GetUserByLoginPassword(login, password string) (*models.Users, error)
 	//CreateImage(creator *models.Users, path string) (*models.Images, error)
@@ -94,4 +95,25 @@ func (p LiteStrg) GetUserById(id int64) (*models.User, error) {
 	}
 
 	return &user, nil
+}
+
+func (p LiteStrg) UpdateBalance(id int64) (*models.User, error) {
+	user, err := p.GetUserById(id)
+	if err != nil {
+		return nil, err
+	}
+	result, err := p.Db.Exec("UPDATE users SET balance = ?, got_bonus = ? WHERE id = ?", user.Balance+100, 1, user.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check if any rows were affected
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return nil, err
+	}
+	if rowsAffected == 0 {
+		return nil, errors.New("user not found")
+	}
+	return p.GetUserById(id)
 }

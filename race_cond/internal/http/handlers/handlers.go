@@ -4,17 +4,24 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"race_cond/internal/http/common"
 	midauth "race_cond/internal/http/middleware"
+	"race_cond/internal/storage"
+	"time"
 )
 
 func GetIndexPage(w http.ResponseWriter, r *http.Request) {
-	_, isLogined := midauth.UserFromContext(r.Context())
+	user, isLogined := midauth.UserFromContext(r.Context())
 	t, err := template.ParseFiles("./templates/common/base.html", "./templates/common/index.html")
 	if err != nil {
 		log.Println(err)
 		return
 	}
-	if err := t.Execute(w, map[string]interface{}{"isLogined": isLogined}); err != nil {
+	balance := 0
+	if user != nil {
+		balance = user.Balance
+	}
+	if err := t.Execute(w, map[string]interface{}{"isLogined": isLogined, "balance": balance}); err != nil {
 		log.Println(err)
 		return
 	}
@@ -30,6 +37,39 @@ func GetBonusPage(w http.ResponseWriter, r *http.Request) {
 	if err := t.Execute(w, map[string]interface{}{"isLogined": isLogined}); err != nil {
 		log.Println(err)
 		return
+	}
+}
+
+func GetBonus(strg storage.Storage) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		user, isLogined := midauth.UserFromContext(r.Context())
+		if user.GotBonus != 0 {
+			common.ServeError(
+				w,
+				http.StatusForbidden,
+				"You have already got the bonus!!!!!! stop wasting server's resources!",
+				isLogined,
+			)
+			return
+		}
+		time.Sleep(1)
+		user, err := strg.UpdateBalance(user.Id)
+		if err != nil {
+			log.Println(err)
+			common.ServeError(
+				w,
+				http.StatusInternalServerError,
+				"InternalError",
+				isLogined,
+			)
+		}
+		//TODO: logic here
+		http.Redirect(
+			w,
+			r,
+			"/",
+			http.StatusSeeOther,
+		)
 	}
 }
 
