@@ -20,6 +20,19 @@ func GetIndexPage(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func GetBonusPage(w http.ResponseWriter, r *http.Request) {
+	_, isLogined := midauth.UserFromContext(r.Context())
+	t, err := template.ParseFiles("./templates/common/base.html", "./templates/common/bonus.html")
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	if err := t.Execute(w, map[string]interface{}{"isLogined": isLogined}); err != nil {
+		log.Println(err)
+		return
+	}
+}
+
 //func bonusHandler(w http.ResponseWriter, r *http.Request) {
 //	username := r.URL.Query().Get("username")
 //	if username == "" {

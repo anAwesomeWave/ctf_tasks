@@ -36,6 +36,10 @@ func setUpRouter(strg storage.Storage) *chi.Mux {
 		authR.Get("/users/login", handlers.GetLoginPage)
 		authR.Post("/users/login", handlers.PostLoginPage(strg))
 
+		authR.Group(func(bonusR chi.Router) {
+			bonusR.Use(midauth.CustomAuthenticator(handlers.TokenAuth))
+			bonusR.Get("/bonus", handlers.GetBonusPage)
+		})
 	})
 	return router
 }
