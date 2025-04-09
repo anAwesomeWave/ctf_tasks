@@ -1,45 +1,10 @@
 version: '3'
 
-volumes:
-  pg_data:
-  shared:
-
 services:
   app:
     build:
       dockerfile: Dockerfile_App
-    deploy:
-      resources:
-        limits:
-          memory: 25m
     environment:
-      DB_PATH: "db:5432"
+      CTF_FLAG: "practice{jwt}"
     ports:
       - "8080:8081"
-    depends_on:
-      db:
-        condition: service_healthy  # без этого контейнеры будут "стучаться" в бд до ее полноценного запуска
-    volumes:
-      - shared:/app/static/users/upload
-  db:
-    image: postgres:13.10
-    env_file: config/.storage_env
-    ports:
-      - "54321:5432"  # non-default postgres port to prevent collision
-    volumes:
-      - pg_data:/var/lib/postgresql/data
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
-      interval: 10s
-      timeout: 60s
-      retries: 5
-  migrate:
-    build:
-      dockerfile: Dockerfile_migrator
-    environment:
-      DB_PATH: "db:5432"
-    depends_on:
-      db:
-        condition: service_healthy
-    volumes:
-      - shared:/app/static/users/upload

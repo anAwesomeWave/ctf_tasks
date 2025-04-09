@@ -7,7 +7,7 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o server ./cmd/app/
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o server ./main.go
 
 # Финальный образ
 FROM alpine:latest
@@ -18,11 +18,8 @@ WORKDIR /app
 RUN apk add --no-cache bash
 
 COPY --from=builder /app/server /app/server
-
-COPY config config
 COPY templates templates
-COPY static/server static/server
-COPY static/users/upload/avatars/default static/users/upload/avatars/default
-COPY static/users/upload/default static/users/upload/default
+
+COPY static static
 
 CMD ["./server"]
