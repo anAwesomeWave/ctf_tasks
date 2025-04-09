@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pwnterest! {{block "title" .}}{{ end }}</title>
+    <link rel="stylesheet" href="/static/server/css/base-nav.css">
+    {{block "head" .}}{{ end }}
+</head>
+<body>
+<header>
+    <nav>
+        <ul><a href="/">Welcome to PwnTerest, SQL edition</a></ul>
+        {{ if not .isLogined }}
+        <li><a href="/users/signup">Register</a></li>
+        <li><a href="/users/login">Login</a></li>
+
+        {{ else }}
+
+        <a href="/users/me">See your Page</a>
+        <a href="/users/logout">Logout</a>
+        <a href="/static/images/upload">Upload new Image!</a>
+<!--        <a href="/">View All other Images!</a>-->
+        {{ end }}
+    </nav>
+</header>
+{{block "content" .}} This is the default body.{{end}}
+</body>
+</html>
