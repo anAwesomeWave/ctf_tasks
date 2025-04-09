@@ -1,0 +1,73 @@
+/* Общая сетка */
+.image-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Минимум 300px на колонку */
+    gap: 20px; /* Отступы между карточками */
+    max-width: 1200px; /* Максимальная ширина всей сетки */
+    margin: 0 auto; /* Центрирование сетки */
+    padding: 20px; /* Внутренние отступы */
+    box-sizing: border-box;
+}
+
+/* Карточка изображения */
+.image-card {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    height: 400px; /* Фиксированная высота для всех карточек */
+    display: flex;
+    flex-direction: column; /* Вертикальное выравнивание */
+}
+
+.image-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Верхняя часть карточки (автор) */
+.author-info {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    background-color: #f8f8f8;
+    border-bottom: 1px solid #ddd;
+    flex-shrink: 0; /* Уменьшение пространства для этой части */
+}
+
+.avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 10px;
+    object-fit: cover;
+    border: 1px solid #ddd;
+}
+
+.author-login {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #333;
+}
+
+/* Изображение */
+.main-image {
+    width: 100%;
+    height: 100%; /* Заполняет оставшееся пространство карточки */
+    object-fit: cover; /* Равномерное заполнение области */
+    display: block;
+    flex-grow: 1; /* Заполняет оставшуюся высоту карточки */
+}
+
+/* Адаптация для маленьких экранов */
+@media (max-width: 768px) {
+    .image-grid {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+
+    .image-card {
+        height: 300px; /* Уменьшаем высоту карточки для маленьких экранов */
+    }
+}
