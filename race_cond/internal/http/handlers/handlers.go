@@ -84,6 +84,7 @@ func GetFlag(flag string) http.HandlerFunc {
 				"You don't have enough money to view this",
 				isLogined,
 			)
+			return
 		}
 		if err := t.Execute(w, map[string]interface{}{"isLogined": isLogined, "flag": flag}); err != nil {
 			log.Println(err)

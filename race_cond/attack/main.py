@@ -12,14 +12,14 @@ async def main(target_utl, cookie):
     print(f"Start Bombarding url={target_utl}, cookie={cookie}")
     cookie_param = {'jwt': cookie}
     async with asyncio.TaskGroup() as tg:
-        for i in range(1000):
+        for i in range(50):
             tg.create_task(send_post_request(target_utl, cookie_param))
 
 
 if __name__ == "__main__":
     asyncio.run(
         main(
-            'http://localhost:8081/bonus',
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDQyMTY3NzgsInVzZXJfaWQiOjF9.pVND6VcB3KTiIFKbi1SzeloQpiRkAc1w04FyiMbatnE'
+            'http://localhost:9090/bonus',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDQyMjA5MTksInVzZXJfaWQiOjN9.rTCHydf3SgOqZAws3yMTHYJahYMpUZLRqx6X7NryEWs'
         )
     )
