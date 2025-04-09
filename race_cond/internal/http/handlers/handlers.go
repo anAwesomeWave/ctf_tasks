@@ -7,7 +7,6 @@ import (
 	"race_cond/internal/http/common"
 	midauth "race_cond/internal/http/middleware"
 	"race_cond/internal/storage"
-	"time"
 )
 
 func GetIndexPage(w http.ResponseWriter, r *http.Request) {
@@ -52,7 +51,6 @@ func GetBonus(strg storage.Storage) http.HandlerFunc {
 			)
 			return
 		}
-		time.Sleep(1)
 		user, err := strg.UpdateBalance(user.Id)
 		if err != nil {
 			log.Println(err)
@@ -63,7 +61,6 @@ func GetBonus(strg storage.Storage) http.HandlerFunc {
 				isLogined,
 			)
 		}
-		//TODO: logic here
 		http.Redirect(
 			w,
 			r,

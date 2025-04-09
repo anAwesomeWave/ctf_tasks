@@ -7,6 +7,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"log"
 	"race_cond/internal/storage/models"
+	"time"
 )
 
 var (
@@ -106,7 +107,7 @@ func (p LiteStrg) UpdateBalance(id int64) (*models.User, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	time.Sleep(5 * time.Second)
 	// Check if any rows were affected
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
