@@ -8,7 +8,6 @@ import (
 	"log"
 	"race_cond/internal/storage/models"
 	"time"
-	"math/rand"
 )
 
 var (
@@ -96,13 +95,15 @@ func (p LiteStrg) GetUserById(id int64) (*models.User, error) {
 }
 
 func (p LiteStrg) UpdateBalance(id int64) (*models.User, error) {
-	time.Sleep(time.Duration(1 +rand.Intn(2)) * time.Second)
-	result, err := p.Db.Exec("UPDATE users SET balance = balance + 100, got_bonus = 1 WHERE id = ?", id)
+	result, err := p.Db.Exec("UPDATE users SET balance = balance + 100 WHERE id = ?", id)
 	if err != nil {
 		return nil, err
 	}
-	// time.Sleep(2 * time.Second)
-	// Check if any rows were affected
+	time.Sleep(time.Second)
+	result, err = p.Db.Exec("UPDATE users SET got_bonus = 1 WHERE id = ?", id)
+	if err != nil {
+		return nil, err
+	}
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
 		return nil, err
